@@ -308,7 +308,7 @@ function Dashboard() {
 
       <StyledDv>
         <div className="tables">
-          <h3>Customer PO Details</h3>
+          <h3>Customer PO Details:</h3>
           <StyledTable className="table table-bordered table-striped table-hover shadow">
             <thead className="table-secondary">
               <tr>
@@ -318,14 +318,18 @@ function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {sales.map((sale, index) => (
-                <tr key={`${sale.invoice}-${sale.name}-${index}`}>
-                  <td>{sale.name}</td>
-                  <td>{sale.quantity}</td>
-                  <td>{sale.cost}</td>
-                </tr>
-              ))}
-            </tbody>
+           
+
+
+            {sales.map((sale, index) => (
+  <tr key={sale.id || index}>
+    <td>{sale.name}</td>
+    <td>{sale.quantity}</td>
+    <td>{sale.cost}</td>
+  </tr>
+))}
+</tbody>
+
           </StyledTable>
           <h3>Order Amount: {orderAmount.toFixed(2)}</h3>
         </div>
@@ -340,14 +344,14 @@ function Dashboard() {
               </tr>
             </thead>
             <tbody>
-  {purchase.map((item) => (
-    <tr key={item.id}>
-      <td>{item.item && item.item[0] ? item.item[0].customer : "No customer"}</td>
-      <td>{item.item && item.item[0] ? item.item[0].qtyAllocated : "N/A"}</td>
-      <td>{item.item && item.item[0] ? item.item[0].price : "N/A"}</td>
-    </tr>
-  ))}
-</tbody>
+              {purchase.map((item) => (
+                <tr key={item.id}>
+                  <td>{item?.item?.[0]?.customer || "N/A"}</td>
+                  <td>{item?.item?.[0]?.qtyAllocated || "N/A"}</td>
+                  <td>{item?.item?.[0]?.price || "N/A"}</td>
+                </tr>
+              ))}
+            </tbody>
           </StyledTable>
           <h3>Purchase Amount: {purchaseAmount.toFixed(2)}</h3>
         </div>
@@ -362,13 +366,13 @@ function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {rems.map((rem) => (
-                <tr key={rem}>
-                  <td>{rem.name}</td>
-                  <td>{rem.qty}</td>
-                  <td>{rem.price.toFixed(2)}</td>
-                </tr>
-              ))}
+            {rems.map((rem) => (
+  <tr key={rem.id}>
+    <td>{rem.name}</td>
+    <td>{rem.qty}</td>
+    <td>{rem.price.toFixed(2)}</td>
+  </tr>
+))}
             </tbody>
           </StyledTable>
           <h3>Remaining Purchase: {RemAmount.toFixed(2)}</h3>

@@ -337,27 +337,28 @@ function ManagePurchase() {
             </tr>
           </thead>
           <tbody>
-          {purchaseData.map((purchase, index) => (
-            <tr key={index}>
-              <td>{purchase.customer}</td>
-              <td>{purchase.po}</td>
-              <td>{purchase.co}</td>
-              <td>{purchase.date}</td>
-              <td>{purchase.item[0].price}</td> 
-              <td>{purchase.status}</td>
-              {/* <td>
-                <div className="buttons-group">
-                  <button onClick={() => handleEdit(index)} className="btns">
-                    <BiEdit />
-                  </button>
-                  <button onClick={() => handleDelete(purchase.ana,purchase.customer)} className="btns">
-                    <BiTrash />
-                  </button>
-                </div>
-              </td> */}
-            </tr>
-          ))}
-        </tbody>
+  {purchaseData.map((purchase, index) => (
+    <tr key={index}>
+      <td>{purchase.customer}</td>
+      <td>{purchase.po}</td>
+      <td>{purchase.co}</td>
+      <td>{purchase.date}</td>
+      <td>{purchase.item && purchase.item[0] ? purchase.item[0].price : "N/A"}</td> 
+      <td>{purchase.status}</td>
+      {/* <td>
+        <div className="buttons-group">
+          <button onClick={() => handleEdit(index)} className="btns">
+            <BiEdit />
+          </button>
+          <button onClick={() => handleDelete(purchase.ana,purchase.customer)} className="btns">
+            <BiTrash />
+          </button>
+        </div>
+      </td> */}
+    </tr>
+  ))}
+</tbody>
+
 
         </table>
       </div>

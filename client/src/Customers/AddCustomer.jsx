@@ -23,13 +23,8 @@ const StyledModel = styled.div`
   backdrop-filter: blur(3px);
 `;
 
-function AddCustomer({
-  customers,
-  closeModal,
-  editingCustomer,
-  updateCustomerList,
-}) {
-  const navigate = useNavigate();
+function AddCustomer({ customers, closeModal, editingCustomer, updateCustomerList }) {
+  const navigate=useNavigate();
   const initialData = {
     id: null,
     name: "",
@@ -39,7 +34,7 @@ function AddCustomer({
     area: "",
     city: "",
     status: "",
-    GSTN: "",
+    gstn: "",
   };
 
   const [formData, setFormData] = useState({ ...initialData });
@@ -62,33 +57,33 @@ function AddCustomer({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
+  
     if (editingCustomer) {
-      axios
-        .post("http://localhost:8000/customer/updateCustomer", formData)
-        .then((response) => {
+      axios.post("http://localhost:8000/customer/updateCustomer", formData)
+        .then(response => {
           alert("User updated");
-          navigate("/customer");
+          navigate("/customer");  
         })
-        .catch((error) => {
+        .catch(error => {
           alert("Something went wrong. Try again.");
-          console.error("Error updating customer:", error);
+          console.error('Error updating customer:', error);
         });
     } else {
-      axios
-        .post("http://localhost:8000/customer/add_customer", formData)
-        .then((response) => {
+      axios.post("http://localhost:8000/customer/add_customer", formData)
+        .then(response => {
           alert("Inserted");
           window.location.reload();
         })
-        .catch((error) => {
+        .catch(error => {
           alert("Something went wrong.");
+          console.error('Error adding customer:', error);
         });
     }
-
-    setShowForm(false);
-    closeModal();
+  
+    setShowForm(false); 
+    closeModal();        
   };
+  
 
   const handleCancel = (e) => {
     e.preventDefault();
@@ -101,9 +96,7 @@ function AddCustomer({
         <StyledModel>
           <Modal>
             <form onSubmit={handleSubmit} className="customer-form">
-              <h3 className="form-heading">
-                {editingCustomer ? "Edit Customer" : "Add Customer"}
-              </h3>
+              <h3 className="form-heading">{editingCustomer ? "Edit Customer" : "Add Customer"}</h3>
               <label className="customer-form__label">
                 Name:
                 <input
@@ -181,25 +174,17 @@ function AddCustomer({
                 GSTN:
                 <input
                   type="text"
-                  name="GSTN"
-                  value={formData.GSTN}
+                  name="gstn"
+                  value={formData.gstn}
                   onChange={handleInputChange}
                   className="customer-form__input"
                 />
               </label>
               <div className="customer-form__button-container">
-                <button
-                  type="submit"
-                  value="submit"
-                  className="customer-form__button"
-                >
+                <button type="submit" value="submit" className="customer-form__button">
                   Save
                 </button>
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="customer-form__button"
-                >
+                <button type="button" onClick={handleCancel} className="customer-form__button">
                   Cancel
                 </button>
               </div>

@@ -94,7 +94,7 @@ function ManageItem() {
         return console.log("good request ");
       }
     })
-    // console.log("hello")
+    console.log("hello")
   },[])
 
   const [showModal, setShowModal] = useState(false);

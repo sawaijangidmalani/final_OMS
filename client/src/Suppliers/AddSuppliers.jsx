@@ -21,15 +21,11 @@ const StyledModel = styled.div`
   height: 100vh;
   top: 0;
   left: 0;
+  background-color: none;
   backdrop-filter: blur(2px);
 `;
 
-function AddSuppliers({
-  suppliers = [],
-  closeModal,
-  editingSuppliers,
-  updateSupplierList,
-}) {
+function AddSuppliers({ suppliers, closeModal, editingSuppliers, updateSupplierList }) {
   const initialData = {
     id: null,
     name: "",
@@ -39,13 +35,12 @@ function AddSuppliers({
     area: "",
     city: "",
     status: "",
-    GSTN: "",
+    gstn: "",
   };
 
-  const [formData, setFormData] = useState(initialData);
+  const [formData, setFormData] = useState({ ...initialData });
   const [showForm, setShowForm] = useState(true);
 
-  // Populate the form if editing suppliers
   useEffect(() => {
     if (editingSuppliers) {
       setFormData(editingSuppliers);
@@ -63,82 +58,131 @@ function AddSuppliers({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
     try {
       let response;
+      
       if (editingSuppliers) {
-        // Update existing supplier
-        response = await axios.put(
-          "http://localhost:8000/supplier/editSupplier",
-          formData
-        );
+        response = await axios.put("http://localhost:8000/supplier/editSupplier", formData);
       } else {
-        // Add new supplier
-        response = await axios.post(
-          "http://localhost:8000/supplier/addSupplier",
-          formData
-        );
+        response = await axios.post("http://localhost:8000/supplier/addSupplier", formData);
       }
-
+      
       const { data } = response;
-
+      
       if (data?.status) {
         alert("Supplier data saved successfully");
-
+  
         if (editingSuppliers) {
-          updateSupplierList(formData); // Update supplier in the list
+          updateSupplierList(formData);
         } else {
-          const newSupplier = { ...formData, id: suppliers.length + 1 };
-          updateSupplierList(newSupplier); // Add new supplier to the list
+          formData.id = suppliers.length + 1; 
+          updateSupplierList(formData);
         }
-
+  
         setShowForm(false);
-        closeModal();
+        closeModal(); 
       } else {
-        alert("Something went wrong. Please try again.");
+        alert("Something went wrong");
       }
-    } catch (error) {
-      console.error("Error while saving supplier data:", error);
-      alert(
-        "An error occurred while saving the supplier data. Please try again."
-      );
+    } catch (e) {
+      console.log(e);
+      alert("An error occurred while saving the supplier data");
     }
   };
-
-  return (
+    return (
     <div>
       {showForm && (
         <StyledModel>
           <Modal>
             <form onSubmit={handleSubmit} className="customer-form">
               <h3 className="form-heading">Add/Edit Suppliers</h3>
-
-              {/* Form fields */}
-              {[
-                "name",
-                "email",
-                "phone",
-                "address",
-                "area",
-                "city",
-                "status",
-                "GSTN",
-              ].map((field) => (
-                <label key={field} className="customer-form__label">
-                  {field.charAt(0).toUpperCase() + field.slice(1)}:
-                  <input
-                    type={field === "email" ? "email" : "text"}
-                    name={field}
-                    value={formData[field]}
-                    onChange={handleInputChange}
-                    className="customer-form__input"
-                  />
-                </label>
-              ))}
-
-              {/* Buttons */}
+              <label className="customer-form__label">
+                Name:
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="customer-form__input"
+                />
+              </label>
+              <label className="customer-form__label">
+                Email:
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="customer-form__input"
+                />
+              </label>
+              <label className="customer-form__label">
+                Phone:
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className="customer-form__input"
+                />
+              </label>
+              <label className="customer-form__label">
+                Address:
+                <input
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  className="customer-form__input"
+                />
+              </label>
+              <label className="customer-form__label">
+                Area:
+                <input
+                  type="text"
+                  name="area"
+                  value={formData.area}
+                  onChange={handleInputChange}
+                  className="customer-form__input"
+                />
+              </label>
+              <label className="customer-form__label">
+                City:
+                <input
+                  type="text"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleInputChange}
+                  className="customer-form__input"
+                />
+              </label>
+              <label className="customer-form__label">
+                Status:
+                <input
+                  type="text"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  className="customer-form__input"
+                />
+              </label>
+              <label className="customer-form__label">
+                GSTN:
+                <input
+                  type="text"
+                  name="gstn"
+                  value={formData.gstn}
+                  onChange={handleInputChange}
+                  className="customer-form__input"
+                />
+              </label>
               <div className="customer-form__button-container">
-                <button type="submit" className="customer-form__button">
+                <button
+                  type="submit"
+                  value="submit"
+                  className="customer-form__button"
+                >
                   Save
                 </button>
                 <button

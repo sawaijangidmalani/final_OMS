@@ -26,7 +26,9 @@ const StyledModel = styled.div`
 `;
 
 const AddItem = ({ items, setItem, editItem, closeModal }) => {
-  useEffect(() => {}, []);
+  useEffect(() => {
+    console.log("hello");
+  }, []);
 
   const initialData = {
     id: null,
@@ -92,22 +94,14 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
       axios
         .post("http://localhost:8000/item/insertItems", formData)
         .then((response) => {
-          console.log("Response status:", response.status);
-          console.log("Response data:", response.data);
-
-          if (response.status === 200 || response.status === 201) {
-            setItem([...items, { ...formData, id: response.data.itemId }]);
-            alert("Item added successfully");
-          } else {
-            alert("Something went wrong.");
-          }
+          console.log("Item added:", response.data);
+          setItem([...items, { ...formData, id: response.data.itemId }]);
         })
         .catch((err) => {
           console.error(
             "Error adding item:",
             err.response ? err.response.data : err.message
           );
-          alert("Something went wrong.");
         });
     }
 
@@ -146,10 +140,7 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
                 className="customer-form__input"
               >
                 {suppliers.map((supplier) => (
-                  <option
-                    key={supplier.id || supplier.name}
-                    value={supplier.name}
-                  >
+                  <option key={supplier.id} value={supplier.name}>
                     {supplier.name}
                   </option>
                 ))}

@@ -1,21 +1,9 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import styled from "styled-components";
 import SalesOrder from "./SalesOrder";
-import EditCustomerPO from "../Sales-Order/EditCustomePO";
 import { BiEdit, BiTrash } from "react-icons/bi";
-import {
-  Modal,
-  StyledModel,
-  StyledDiv,
-  StyledLabel,
-  StyledInput,
-  ButtonContainer,
-  StyledButton,
-  DropdownContainer,
-  DropdownButton,
-  DropdownOptions,
-  Option,
-} from "./Sales.styles";
+import EditCustomerPO from '../Sales-Order/EditCustomePO'
+import axios from "axios";
 
 const initialCustomers = [
   {
@@ -39,6 +27,134 @@ const initialCustomers = [
 const initialInvoices = ["IN0001", "IN0002"];
 const initialCustomerPOs = ["CPO 001", "CPO 002", "CPO 003"];
 
+const Modal = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+`;
+
+const StyledModel = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const StyledDiv = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const StyledSelect = styled.select`
+  width: 200px;
+  height: 40px;
+  background-color: white;
+  color: #333;
+  padding-left: 10px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  margin: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+`;
+
+const StyledLabel = styled.label`
+  font-size: 16px;
+  margin: 10px;
+`;
+
+const StyledInput = styled.input`
+  width: 200px;
+  height: 40px;
+  background-color: white;
+  color: #333;
+  padding-left: 10px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  margin: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+`;
+
+const ButtonContainer = styled.div`
+  display: flex;
+  justify-content: space-around;
+  padding: 20px;
+  gap: 15px;
+`;
+
+const StyledButton = styled.button`
+  font-size: 16px;
+  color: #ffffff;
+  background-color: #4e647b;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #0056b3;
+  }
+
+  &:focus {
+    outline: none;
+  }
+`;
+
+const DropdownContainer = styled.div`
+  position: relative;
+`;
+
+const DropdownButton = styled.button`
+  width: 200px;
+  height: 40px;
+  background-color: white;
+  color: #333;
+  padding-left: 10px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  margin: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+  }
+`;
+
+const DropdownOptions = styled.div`
+  position: absolute;
+  width: 200px;
+  max-height: 150px;
+  overflow-y: auto;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+`;
+
+const Option = styled.div`
+  padding: 10px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+`;
+
 function Sales() {
   const [customers, setCustomers] = useState(initialCustomers);
   const [searchTerm, setSearchTerm] = useState("");
@@ -50,7 +166,6 @@ function Sales() {
   const [selectedCustomer, setSelectedCustomer] = useState(customers[0]?.name);
   const [selectedCustomerPO, setSelectedCustomerPO] = useState(customerPOs[0]);
   const [salesData, setSalesData] = useState([]);
-  const [loading, setLoading] = useState(false);
 
   const [dropdownOpenCustomerPO, setDropdownOpenCustomerPO] = useState(false);
   const [selectedSaleIndex, setSelectedSaleIndex] = useState(null);
@@ -63,37 +178,53 @@ function Sales() {
     status: "Active",
   });
 
+  const [newInvoice, setNewInvoice] = useState("");
+
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       try {
+        // Retrieve data from local storage
         const storedSalesData = localStorage.getItem("salesData");
+  
+        // If there's stored data, set it as initial state
         if (storedSalesData) {
           setSalesData(JSON.parse(storedSalesData));
         }
+  
+        // Fetch new data from the API
         const response = await axios.get("http://localhost:8000/po/getpo");
         const fetchedData = response.data;
+        
+        // Update state and local storage with the fetched data
         setSalesData(fetchedData);
         localStorage.setItem("salesData", JSON.stringify(fetchedData));
       } catch (error) {
-        console.error("Error fetching sales data:", error);
-      } finally {
-        setLoading(false);
+        console.error('Error fetching sales data:', error);
       }
     };
+  
     fetchData();
-  }, []);
+  }, []); 
+  const handleDateChange = (event) => {
+    setSelectedDate(event.target.value);
+  };
 
-  const handleDateChange = (event) => setSelectedDate(event.target.value);
-  const handleCustomerChange = (event) =>
+  const handleCustomerChange = (event) => {
     setSelectedCustomer(event.target.value);
-  const handleCustomerPOChange = (event) =>
+  };
+
+  const handleCustomerPOChange = (event) => {
     setSelectedCustomerPO(event.target.value);
-  const handleSearch = () => {};
+  };
+
+  const handleSearch = () => {
+  };
+
   const handleSaleOrder = () => {
     setSelectedSaleIndex(null);
     setShowModal(true);
   };
+
   const handleSalesData = (data) => {
     if (selectedSaleIndex !== null) {
       const updatedSalesData = [...salesData];
@@ -111,18 +242,11 @@ function Sales() {
     setShowModal(true);
   };
 
-  const handleDelete = async (index) => {
-    const confirm = window.confirm("Are you sure you want to delete this PO?");
-    if (!confirm) return;
-
-    try {
-      const sale = salesData[index];
-      await axios.delete(`http://localhost:8000/po/${sale.id}`);
-      const updatedSalesData = salesData.filter((_, i) => i !== index);
-      setSalesData(updatedSalesData);
-    } catch (error) {
-      console.error("Error deleting sale:", error);
-    }
+  const handleDelete = (index) => {
+    
+    const updatedSalesData = [...salesData];
+    updatedSalesData.splice(index, 1);
+    setSalesData(updatedSalesData);
   };
 
   const handleNewCustomerChange = (e) => {
@@ -142,20 +266,26 @@ function Sales() {
     setCustomers([...customers, newCustomer]);
   };
 
-  const addInvoice = (invoiceNumber) =>
+  const addInvoice = (invoiceNumber) => {
     setInvoices([...invoices, invoiceNumber]);
+  };
 
-  const handleClose = () => setShowModal(false);
+  const handleClose = () => {
+    setShowModal(false);
+  };
 
-  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
+  const toggleDropdown = () => {
+    setDropdownOpen(!dropdownOpen);
+  };
 
   const handleOptionClick = (option) => {
     setSearchTerm(option);
     setDropdownOpen(false);
   };
 
-  const toggleDropdownCustomerPO = () =>
+  const toggleDropdownCustomerPO = () => {
     setDropdownOpenCustomerPO(!dropdownOpenCustomerPO);
+  };
 
   const handleCustomerPOSelect = (customerPO) => {
     setSelectedCustomerPO(customerPO);
@@ -173,10 +303,7 @@ function Sales() {
           {dropdownOpen && (
             <DropdownOptions>
               {customers.map((customer) => (
-                <Option
-                  key={customer.id}
-                  onClick={() => handleOptionClick(customer.name)}
-                >
+                <Option key={customer.id} onClick={() => handleOptionClick(customer.name)}>
                   {customer.name}
                 </Option>
               ))}
@@ -213,56 +340,47 @@ function Sales() {
         </ButtonContainer>
       </StyledDiv>
       <div>
-        <h3>Customer PO List</h3>
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <table className="table table-bordered table-striped">
-            <thead className="table-secondary">
-              <tr>
-                <th>Customer Name</th>
-                <th>Customer PO</th>
-                <th>Date</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {salesData.map((sale, index) => (
-                <React.Fragment key={index}>
-                  {sale.item.map((item, itemIndex) => (
-                    <tr key={`${index}-${itemIndex}`}>
-                      <td>{itemIndex === 0 ? sale.customer : ""}</td>
-                      <td>{itemIndex === 0 ? sale.po : ""}</td>
-                      <td>{itemIndex === 0 ? sale.date : ""}</td>
-                      <td>{item.price}</td>
-                      <td>{itemIndex === 0 ? sale.status : ""}</td>
-                      <td>
-                        {itemIndex === 0 && (
-                          <div className="buttons-group">
-                            <button
-                              onClick={() => handleEdit(index)}
-                              className="btns"
-                            >
-                              <BiEdit />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(index)}
-                              className="btns"
-                            >
-                              <BiTrash />
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-        )}
+        <h3>Customer PO List:</h3>
+        <table className="table table-bordered table-striped">
+          <thead className="table-secondary">
+            <tr>
+              <th>Customer Name</th>
+              <th>Customer PO</th>
+              <th>Date</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {salesData.map((sale, index) => (
+              <React.Fragment key={index}>
+                {sale.item.map((item, itemIndex) => (
+                  <tr key={`${index}-${itemIndex}`}>
+                    <td>{itemIndex === 0 ? sale.customer : ''}</td>
+                    <td>{itemIndex === 0 ? sale.po : ''}</td>
+                    <td>{itemIndex === 0 ? sale.date : ''}</td>
+                    <td>{item.price}</td>
+                    <td>{itemIndex === 0 ? sale.status : ''}</td>
+                    <td>
+                      {itemIndex === 0 && (
+                        <div className="buttons-group">
+                          <button onClick={() => handleEdit(index)} className="btns">
+                            <BiEdit />
+                          </button>
+                          <button onClick={() => handleDelete(index)} className="btns">
+                            <BiTrash />
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </React.Fragment>
+            ))}
+          </tbody>
+
+        </table>
       </div>
       {showModal && (
         <StyledModel>

@@ -6,7 +6,7 @@ const router=express.Router();
 router.post("/add_customer", (req, res) => {
     const formData = req.body;
     
-    const sql = "INSERT INTO customers (name, email, phone, address, area, city, status, GSTN) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    const sql = "INSERT INTO customers (name, email, phone, address, area, city, status, gstn) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     const values = [
       formData.name,
       formData.email,
@@ -15,7 +15,7 @@ router.post("/add_customer", (req, res) => {
       formData.area,
       formData.city,
       formData.status,
-      formData.GSTN
+      formData.gstn
     ];
   
     con.query(sql, values, (err, result) => {
@@ -57,12 +57,12 @@ router.post("/updateCustomer", (req, res) => {
     const formdata = req.body;
     console.log(formdata);  
 
-    const { email, name, phone, area, address, city, status, GSTN } = formdata;
+    const { email, name, phone, area, address, city, status, gstn } = formdata;
 
     const phoneInt = parseInt(phone, 10);
 
     
-    const gstnStr = GSTN;
+    const gstnStr = gstn;
 
     const sql = `
         UPDATE customers
