@@ -1,0 +1,57 @@
+
+    
+    .form-heading {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 20px;
+    }
+    
+    .customer-form {
+      background-color: #eceeef;
+      display: flex;
+      flex-direction: column;
+      width: 400px;
+      padding: 30px;
+      border-radius: 10px; /* Increase border-radius for a smoother edge */
+      height: auto;
+      position: absolute;
+      box-shadow: 0 5px 7px rgba(0, 0, 0, 0.2); /* Improved box-shadow */
+    }
+    
+    
+    .customer-form__input {
+      width: 100%;
+      padding: 5px;
+      border: 1px solid black;
+      border-radius: 5px;
+      margin-top: 5px;
+    }
+    
+    .customer-form__button-container {
+      display: flex;
+      justify-content: right;
+      text-align: center;
+    }
+    
+    .customer-form__button {
+      padding: 10px 20px;
+      margin-right: 10px;
+      border: none;
+      outline: none;
+      background: none;
+      color: blue;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .customer-form__button:focus {
+      border: none; /* Remove border on focus */
+    }
+    .customer-form__button:last-child {
+      margin-right: 0;
+    }
+    .customer-form__input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+    }
+    
