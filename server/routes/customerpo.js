@@ -3,11 +3,10 @@ import con from "../utils/db.js";
 
 const router=express.Router();
 
-router.post("/insertCustomerPo", (req, res) => {
+router.post("/insertCustomerPo", async (req, res) => {
     const { customer, date, invoice, qtyAllocated, remainingQty, remainingTotalCost } = req.body;
 
     const getRandomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-
     const cost = getRandomNumber(10000, 50000);
 
     const sqlCustomerPo = `
@@ -15,78 +14,85 @@ router.post("/insertCustomerPo", (req, res) => {
         VALUES (?, ?, ?, ?, ?)
     `;
 
-    con.query(sqlCustomerPo, [customer, date, qtyAllocated, invoice, cost], (err, result) => {
-        if (err) {
-            console.error("Error inserting data into customerpo:", err);
-            return res.status(500).send("An error occurred while inserting data into customerpo.");
-        }
+    const sqlRemainingPo = `
+        INSERT INTO remaining_purchase_order (qty, price, name)
+        VALUES (?, ?, ?)
+    `;
 
-        const sqlRemainingPo = `
-            INSERT INTO remaining_purchase_order (qty, price, name)
-            VALUES (?, ?, ?)
-        `;
+    try {
+        // Insert into customerpo
+        const [customerPoResult] = await con.query(sqlCustomerPo, [customer, date, qtyAllocated, invoice, cost]);
 
-        con.query(sqlRemainingPo, [remainingQty, remainingTotalCost, customer], (err, result) => {
-            if (err) {
-                console.error("Error inserting data into remaining_purchase_order:", err);
-                return res.status(500).send("An error occurred while inserting data into remaining_purchase_order.");
-            }
+        // Insert into remaining_purchase_order
+        const [remainingPoResult] = await con.query(sqlRemainingPo, [remainingQty, remainingTotalCost, customer]);
 
-            res.status(200).send("Customer PO and Remaining Purchase Order data inserted successfully.");
-        });
-    });
+        res.status(200).send("Customer PO and Remaining Purchase Order data inserted successfully.");
+    } catch (err) {
+        console.error("Error inserting data:", err);
+        res.status(500).send("An error occurred while inserting data.");
+    }
 });
 
-router.get("/getRemainingPurchaseOrder", (req, res) => {
+
+router.get("/getRemainingPurchaseOrder", async (req, res) => {
     const sql = `
-        SELECT qty, price,name
+        SELECT qty, price, name
         FROM remaining_purchase_order
     `;
 
-    con.query(sql, (err, results) => {
-        if (err) {
-            console.error("Error retrieving data from remaining_purchase_order:", err);
-            return res.status(500).send("An error occurred while retrieving data.");
-        }
+    try {
+        // Use await to handle the promise-based query
+        const [results] = await con.query(sql);
 
+        // Send the results as JSON
         res.status(200).json({
             success: true,
             data: results
         });
-    });
+    } catch (err) {
+        console.error("Error retrieving data from remaining_purchase_order:", err);
+        res.status(500).send("An error occurred while retrieving data.");
+    }
 });
 
-router.get("/getCustomerPo", (req, res) => {
+
+router.get("/getCustomerPo", async (req, res) => {
     const sql = "SELECT * FROM customerpo";
 
-    con.query(sql, (err, results) => {
-        if (err) {
-            console.error("Error fetching data:", err);
-            return res.status(500).send("An error occurred while fetching data.");
-        }
+    try {
+        // Use await to handle the promise-based query
+        const [results] = await con.query(sql);
+
+        // Send the results as JSON
         res.status(200).json(results);
-    });
+    } catch (err) {
+        console.error("Error fetching data:", err);
+        res.status(500).send("An error occurred while fetching data.");
+    }
 });
 
 
 
 
-router.delete("/delete", (req, res) => {
+
+router.delete("/delete", async (req, res) => {
     const { invoice } = req.body;
 
     const sql = "DELETE FROM customerpo WHERE invoice = ?";
 
-    con.query(sql, [invoice], (err, result) => {
-        if (err) {
-            console.error("Error deleting data:", err);
-            return res.status(500).send("An error occurred while deleting data.");
-        }
+    try {
+        // Use await to handle the promise-based query
+        const [result] = await con.query(sql, [invoice]);
+
         if (result.affectedRows > 0) {
             res.status(200).send("Customer PO data deleted successfully.");
         } else {
             res.status(404).send("Customer PO not found.");
         }
-    });
+    } catch (err) {
+        console.error("Error deleting data:", err);
+        res.status(500).send("An error occurred while deleting data.");
+    }
 });
 
 

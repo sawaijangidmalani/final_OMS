@@ -17,16 +17,18 @@ const createTable = async () => {
     `;
 
     try {
-        await con.query(query); 
+        await con.query(query);
         console.log('Table created or already exists.');
     } catch (error) {
         console.error('Error creating table:', error);
     }
 };
 
-createTable();  
+// Run table creation at startup
+createTable();
 
-router.post("/intertpo", async (req, res) => {
+// Route to insert data into purchase_orders and update item_master
+router.post("/insertpo", async (req, res) => {
     const { customer, customerpo, date, status, purchaseOrder, items } = req.body;
 
     console.log('Customer:', customer);
@@ -36,12 +38,12 @@ router.post("/intertpo", async (req, res) => {
     console.log('Purchase Order:', purchaseOrder);
     console.log('Items:', items);
 
-    const query = `
+    const insertQuery = `
         INSERT INTO purchase_orders (customer, po, co, date, item, status)
         VALUES (?, ?, ?, ?, ?, ?)
     `;
 
-    const values = [
+    const insertValues = [
         customer,
         purchaseOrder,
         customerpo,
@@ -57,15 +59,25 @@ router.post("/intertpo", async (req, res) => {
     `;
 
     try {
+        // Begin transaction
+        await con.query('START TRANSACTION');
+
+        // Update item quantities
         for (let item of items) {
-            const updateValues = [item.qtyAllocated, item.customer];
+            const updateValues = [item.qtyAllocated, item.name]; // Ensure item.name is correct
             await con.query(updateQuery, updateValues);
         }
 
-         con.query(query, values);
+        // Insert into purchase_orders
+        await con.query(insertQuery, insertValues);
+
+        // Commit transaction
+        await con.query('COMMIT');
 
         res.status(201).send('Data successfully inserted and inventory updated');
     } catch (error) {
+        // Rollback transaction in case of error
+        await con.query('ROLLBACK');
         console.error('Error inserting data or updating inventory:', error);
         res.status(500).send('Error inserting data or updating inventory');
     }
@@ -73,38 +85,11 @@ router.post("/intertpo", async (req, res) => {
 
 
 
-// router.get("/getpo", (req, res) => {
-//     const query = `
-//         SELECT * FROM purchase_orders
-//     `;
+router.get("/getpo", async (req, res) => {
+    const query = `SELECT * FROM purchase_orders`;
 
-//     con.query(query, (error, results) => {
-//         if (error) {
-//             console.error('Error fetching data:', error);
-//             return res.status(500).send('Error fetching data');
-//         }
-
-//         const processedResults = results.map(record => {
-//             return {
-//                 ...record,
-//                 item: JSON.parse(record.item) 
-//             };
-//         });
-
-//         console.log(processedResults); 
-//         res.status(200).json(processedResults); 
-//     });
-// });
-router.get("/getpo", (req, res) => {
-    const query = `
-        SELECT * FROM purchase_orders
-    `;
-
-    con.query(query, (error, results) => {
-        if (error) {
-            console.error('Error fetching data:', error);
-            return res.status(500).send('Error fetching data');
-        }
+    try {
+        const [results] = await con.query(query);
 
         const processedResults = results.map(record => {
             let itemData;
@@ -117,15 +102,16 @@ router.get("/getpo", (req, res) => {
             
             return {
                 ...record,
-                item: itemData 
+                item: itemData // Assign parsed item data
             };
         });
 
-        res.status(200).json(processedResults); 
-    });
+        res.status(200).json(processedResults);
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        res.status(500).send('Error fetching data');
+    }
 });
-
-
 
 
 export { router as porouter };
