@@ -36,7 +36,7 @@ async function createDBConnection() {
     console.log(`Connecting to DB at ${process.env.DB_HOST}:${process.env.DB_PORT}`);
 
     const con = await mysql.createConnection({
-      host: process.env.DB_HOST || 'localhost',
+      host: process.env.DB_HOST || 'localhost',  // Change to your remote DB host if necessary
       user: process.env.DB_USERNAME || 'root',
       password: process.env.DB_PASSWORD || '',
       database: process.env.DB_DBNAME || 'order_mngt',
@@ -51,6 +51,6 @@ async function createDBConnection() {
   }
 }
 
-// Call and export the connection
 const con = await createDBConnection();
 export default con;
+
