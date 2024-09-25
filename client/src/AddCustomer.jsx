@@ -10,7 +10,6 @@ function AddCustomer() {
       }
   const [name, setName] = useState({...initialFormData});
   const [error, setError] = useState({...initialFormData});
-  // Reset state when the component mounts
   useEffect(() => {
     setName({  ...initialFormData });
   }, []);

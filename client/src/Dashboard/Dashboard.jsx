@@ -308,7 +308,7 @@ function Dashboard() {
 
       <StyledDv>
         <div className="tables">
-          <h3>Customer PO Details:</h3>
+          <h3>Customer PO Details</h3>
           <StyledTable className="table table-bordered table-striped table-hover shadow">
             <thead className="table-secondary">
               <tr>

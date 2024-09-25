@@ -165,44 +165,46 @@ function ManagePurchase() {
   const [selectedPurchaseData, setSelectedPurchaseData] = useState(null);
 
   const [dropdownOpenSupplier, setDropdownOpenSupplier] = useState(false);
-  const [dropdownOpenPurchaseOrder, setDropdownOpenPurchaseOrder] = useState(false);
+  const [dropdownOpenPurchaseOrder, setDropdownOpenPurchaseOrder] =
+    useState(false);
   const [dropdownOpenCustomerPO, setDropdownOpenCustomerPO] = useState(false);
 
   const toggleDropdownSupplier = () => {
     setDropdownOpenSupplier(!dropdownOpenSupplier);
   };
-  
+
   const handleSupplierSelect = (supplier) => {
     setSelectedSupplier(supplier);
     setDropdownOpenSupplier(false);
   };
-  
+
   const toggleDropdownPurchaseOrder = () => {
     setDropdownOpenPurchaseOrder(!dropdownOpenPurchaseOrder);
   };
-  
+
   const handlePurchaseOrderSelect = (purchaseOrder) => {
     setSelectedPurchaseOrder(purchaseOrder);
     setDropdownOpenPurchaseOrder(false);
   };
-  
+
   const toggleDropdownCustomerPO = () => {
     setDropdownOpenCustomerPO(!dropdownOpenCustomerPO);
   };
-  
+
   const handleCustomerPOSelect = (customerPO) => {
     setSelectedCustomerPO(customerPO);
     setDropdownOpenCustomerPO(false);
   };
 
   useEffect(() => {
-    axios.get("http://localhost:8000/po/getpo")
-    .then(response => {
-        setPurchaseData(response.data);  
-    })
-    .catch(error => {
-        console.error('There was an error fetching the data!', error);
-    });
+    axios
+      .get("http://localhost:8000/po/getpo")
+      .then((response) => {
+        setPurchaseData(response.data);
+      })
+      .catch((error) => {
+        console.error("There was an error fetching the data!", error);
+      });
     const storedPurchaseData = localStorage.getItem("purchaseData");
     if (storedPurchaseData) {
       setPurchaseData(JSON.parse(storedPurchaseData));
@@ -217,8 +219,7 @@ function ManagePurchase() {
     setSelectedDate(event.target.value);
   };
 
-  const handleSearch = () => {
-  };
+  const handleSearch = () => {};
 
   const handlePurchaseOrder = () => {
     setShowModal(true);
@@ -245,14 +246,17 @@ function ManagePurchase() {
 
   const handleDelete = async (status, name) => {
     try {
-        const response = await axios.delete("http://localhost:8000/po/deletepo", {
-            data: { name, status }
-        });
-        console.log('Success:', response.data);
+      const response = await axios.delete("http://localhost:8000/po/deletepo", {
+        data: { name, status },
+      });
+      console.log("Success:", response.data);
     } catch (error) {
-        console.error('Error deleting purchase order:', error.response ? error.response.data : error.message);
+      console.error(
+        "Error deleting purchase order:",
+        error.response ? error.response.data : error.message
+      );
     }
-};
+  };
   const handleCancelEdit = () => {
     setEditModalVisible(false);
     setSelectedPurchaseIndex(null);
@@ -264,14 +268,16 @@ function ManagePurchase() {
       <h1>Manage Purchases</h1>
       <StyledDiv>
         <DropdownContainer>
-          
           <DropdownButton onClick={toggleDropdownSupplier}>
             Customer
           </DropdownButton>
           {dropdownOpenSupplier && (
             <DropdownOptions>
               {suppliers.map((supplier) => (
-                <Option key={supplier.id} onClick={() => handleSupplierSelect(supplier)}>
+                <Option
+                  key={supplier.id}
+                  onClick={() => handleSupplierSelect(supplier)}
+                >
                   {supplier.name}
                 </Option>
               ))}
@@ -279,9 +285,8 @@ function ManagePurchase() {
           )}
         </DropdownContainer>
         <DropdownContainer>
-          
           <DropdownButton onClick={toggleDropdownPurchaseOrder}>
-             Purchase Order
+            Purchase Order
           </DropdownButton>
           {dropdownOpenPurchaseOrder && (
             <DropdownOptions>
@@ -294,9 +299,8 @@ function ManagePurchase() {
           )}
         </DropdownContainer>
         <DropdownContainer>
-         
           <DropdownButton onClick={toggleDropdownCustomerPO}>
-             Customer PO
+            Customer PO
           </DropdownButton>
           {dropdownOpenCustomerPO && (
             <DropdownOptions>
@@ -337,15 +341,19 @@ function ManagePurchase() {
             </tr>
           </thead>
           <tbody>
-  {purchaseData.map((purchase, index) => (
-    <tr key={index}>
-      <td>{purchase.customer}</td>
-      <td>{purchase.po}</td>
-      <td>{purchase.co}</td>
-      <td>{purchase.date}</td>
-      <td>{purchase.item && purchase.item[0] ? purchase.item[0].price : "N/A"}</td> 
-      <td>{purchase.status}</td>
-      {/* <td>
+            {purchaseData.map((purchase, index) => (
+              <tr key={index}>
+                <td>{purchase.customer}</td>
+                <td>{purchase.po}</td>
+                <td>{purchase.co}</td>
+                <td>{purchase.date}</td>
+                <td>
+                  {purchase.item && purchase.item[0]
+                    ? purchase.item[0].price
+                    : "N/A"}
+                </td>
+                <td>{purchase.status}</td>
+                {/* <td>
         <div className="buttons-group">
           <button onClick={() => handleEdit(index)} className="btns">
             <BiEdit />
@@ -355,11 +363,9 @@ function ManagePurchase() {
           </button>
         </div>
       </td> */}
-    </tr>
-  ))}
-</tbody>
-
-
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
       {showModal && (

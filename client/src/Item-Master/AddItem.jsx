@@ -236,6 +236,7 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
                   Cancel
                 </button>
               </div>
+              
             </form>
           </Modal>
         </StyledModel>

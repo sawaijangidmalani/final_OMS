@@ -71,7 +71,7 @@ function AddCustomer({ customers, closeModal, editingCustomer, updateCustomerLis
     } else {
       axios.post("http://localhost:8000/customer/add_customer", formData)
         .then(response => {
-          alert("Inserted");
+          alert("Customer saved successfully");
           window.location.reload();
         })
         .catch(error => {

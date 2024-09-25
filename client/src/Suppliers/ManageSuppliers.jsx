@@ -40,7 +40,6 @@ const StyledButton = styled.button`
 const StyledIn = styled.input`
   width: 200px;
   height: 45px;
-  border-radius: 10%;
   margin-top: 15px;
 `;
 
@@ -152,7 +151,7 @@ function ManageSupplier() {
   const handleDelete = (id) => {
     axios.delete("http://localhost:8000/supplier/deleteSupplier", { data: { id } })
       .then(response => {
-        console.log(response.data);
+
         alert("Deleted")
       })
       .catch(error => {

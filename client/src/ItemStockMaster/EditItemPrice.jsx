@@ -64,6 +64,7 @@ function EditItemPrice() {
     setData(updatedData);
   };
 
+
   return (
     <>
       <StyledModel>
