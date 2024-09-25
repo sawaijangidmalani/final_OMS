@@ -91,10 +91,10 @@ function ManageItem() {
     axios.get("http://localhost:8000/item/getItems").then((data)=>{
       if(!data?.data?.error){
         setItems(data?.data?.data)  
-        return console.log("good request ");
+        // return console.log("good request ");
       }
     })
-    console.log("hello")
+    // console.log("hello")
   },[])
 
   const [showModal, setShowModal] = useState(false);

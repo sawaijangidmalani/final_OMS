@@ -318,18 +318,14 @@ function Dashboard() {
               </tr>
             </thead>
             <tbody>
-           
-
-
-            {sales.map((sale, index) => (
-  <tr key={sale.id || index}>
-    <td>{sale.name}</td>
-    <td>{sale.quantity}</td>
-    <td>{sale.cost}</td>
-  </tr>
-))}
-</tbody>
-
+              {sales.map((sale, index) => (
+                <tr key={sale.id || index}>
+                  <td>{sale.name}</td>
+                  <td>{sale.quantity}</td>
+                  <td>{sale.cost}</td>
+                </tr>
+              ))}
+            </tbody>
           </StyledTable>
           <h3>Order Amount: {orderAmount.toFixed(2)}</h3>
         </div>
@@ -366,13 +362,13 @@ function Dashboard() {
               </tr>
             </thead>
             <tbody>
-            {rems.map((rem) => (
-  <tr key={rem.id}>
-    <td>{rem.name}</td>
-    <td>{rem.qty}</td>
-    <td>{rem.price.toFixed(2)}</td>
-  </tr>
-))}
+              {rems.map((rem, index) => (
+                <tr key={index}>
+                  <td>{rem.name}</td>
+                  <td>{rem.qty}</td>
+                  <td>{rem.price.toFixed(2)}</td>
+                </tr>
+              ))}
             </tbody>
           </StyledTable>
           <h3>Remaining Purchase: {RemAmount.toFixed(2)}</h3>
