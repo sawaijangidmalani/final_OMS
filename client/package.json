@@ -14,11 +14,11 @@
     "@emotion/styled": "^11.11.5",
     "admin-lte": "^3.1.0",
     "axios": "^1.7.4",
-    "bootstrap": "^5.3.3",
+    "bootstrap": "^3.4.1",
     "mysql2": "^3.11.0",
     "react": "^16.14.0",
     "react-dates": "^21.8.0",
-    "react-dom": "^18.3.1",
+    "react-dom": "^16.14.0",
     "react-icons": "^5.2.1",
     "react-router-dom": "^6.23.1",
     "styled-components": "^6.1.11"
