@@ -107,29 +107,7 @@ function ManageSupplier() {
     fetchSuppliers();
   }, []);
   const [suppliers, setSuppliers] = useState([
-    {
-      name: "Shark bites",
-      email: "shark@gmail.com",
-      phone: 9000000001,
-      area: "Ahmedabd",
-      status: "active",
-    },
-    {
-      id: 3,
-      name: "Gravitas",
-      email: "gravitas@gmail.com",
-      phone: 9000000003,
-      area: "Bengluru",
-      status: "active",
-    },
-    {
-      id: 4,
-      name: "PM traders",
-      email: "pm@gmail.com",
-      phone: 9000000004,
-      area: "Ahmedabd",
-      status: "active",
-    },
+    
   ]);
 
   const [searchTerm, setSearchTerm] = useState("");

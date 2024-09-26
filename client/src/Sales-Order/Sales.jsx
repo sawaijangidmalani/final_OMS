@@ -353,32 +353,33 @@ function Sales() {
             </tr>
           </thead>
           <tbody>
-            {salesData.map((sale, index) => (
-              <React.Fragment key={index}>
-                {sale.item.map((item, itemIndex) => (
-                  <tr key={`${index}-${itemIndex}`}>
-                    <td>{itemIndex === 0 ? sale.customer : ''}</td>
-                    <td>{itemIndex === 0 ? sale.po : ''}</td>
-                    <td>{itemIndex === 0 ? sale.date : ''}</td>
-                    <td>{item.price}</td>
-                    <td>{itemIndex === 0 ? sale.status : ''}</td>
-                    <td>
-                      {itemIndex === 0 && (
-                        <div className="buttons-group">
-                          <button onClick={() => handleEdit(index)} className="btns">
-                            <BiEdit />
-                          </button>
-                          <button onClick={() => handleDelete(index)} className="btns">
-                            <BiTrash />
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </React.Fragment>
-            ))}
-          </tbody>
+  {Array.isArray(salesData) && salesData.map((sale, index) => (
+    <React.Fragment key={index}>
+      {Array.isArray(sale.item) && sale.item.map((item, itemIndex) => (
+        <tr key={`${index}-${itemIndex}`}>
+          <td>{itemIndex === 0 ? sale.customer : ''}</td>
+          <td>{itemIndex === 0 ? sale.po : ''}</td>
+          <td>{itemIndex === 0 ? sale.date : ''}</td>
+          <td>{item.price}</td>
+          <td>{itemIndex === 0 ? sale.status : ''}</td>
+          <td>
+            {itemIndex === 0 && (
+              <div className="buttons-group">
+                <button onClick={() => handleEdit(index)} className="btns">
+                  <BiEdit />
+                </button>
+                <button onClick={() => handleDelete(index)} className="btns">
+                  <BiTrash />
+                </button>
+              </div>
+            )}
+          </td>
+        </tr>
+      ))}
+    </React.Fragment>
+  ))}
+</tbody>
+
 
         </table>
       </div>

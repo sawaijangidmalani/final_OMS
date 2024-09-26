@@ -327,7 +327,9 @@ function Dashboard() {
               ))}
             </tbody>
           </StyledTable>
-          <h3>Order Amount: {orderAmount.toFixed(2)}</h3>
+          {/* <h3>Order Amount: {orderAmount.toFixed(2)}</h3> */}
+          <h3>Order Amount: {Number(orderAmount).toFixed(2)}</h3>
+
         </div>
         <div>
           <h3>Purchase Order</h3>
@@ -366,12 +368,16 @@ function Dashboard() {
                 <tr key={index}>
                   <td>{rem.name}</td>
                   <td>{rem.qty}</td>
-                  <td>{rem.price.toFixed(2)}</td>
+                  {/* <td>{rem.price.toFixed(2)}</td> */}
+                  <td>{Number(rem.price).toFixed(2)}</td>
+
                 </tr>
               ))}
             </tbody>
           </StyledTable>
-          <h3>Remaining Purchase: {RemAmount.toFixed(2)}</h3>
+          {/* <h3>Remaining Purchase: {RemAmount.toFixed(2)}</h3> */}
+          <h3>Remaining Purchase: {Number(RemAmount).toFixed(2)}</h3>
+
         </div>
       </StyledDv>
 

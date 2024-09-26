@@ -20,7 +20,7 @@ const PurchaseOrder = ({ onPurchaseData }) => {
   const handleSubmit = async(event) => {
     event.preventDefault();
     const data = { customer, customerpo, date, status, purchaseOrder, items };
-    await axios.post("http://localhost:8000/po/intertpo", data);
+    await axios.post("http://localhost:8000/po/insertpo", data);
     alert("PO inserted");
     console.log(data);
     onPurchaseData(data);
