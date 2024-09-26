@@ -110,12 +110,17 @@ function Home() {
     e.preventDefault();
     if (validForm()) {
       try {
-        const { data } = await axios.post("http://localhost:8000/auth/login", name);
+        const { data } = await axios.post(
+          "http://localhost:8000/auth/login",
+          name
+        );
+        console.log(data);
         if (data?.result) {
           navigate("/dashboard");
         } else {
           alert("Incorrect email or password");
         }
+        console.log(data.result);
       } catch (error) {
         console.error(error);
         alert("An error occurred while logging in");

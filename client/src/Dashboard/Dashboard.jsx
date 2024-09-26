@@ -125,6 +125,9 @@ const Option = styled.div`
 
 function Dashboard() {
   const [purchase, setItem] = useState([]);
+  const [sales, setSale] = useState([]);
+  const [rems, setRem] = useState([]);
+  console.log(purchase);
   useEffect(() => {
     // Fetch Purchase Orders
     axios
@@ -168,20 +171,9 @@ function Dashboard() {
     );
   }, 0);
 
-  const [sales, setSale] = useState([
-    { id: 1, des: "item 1", qty: 55, price: 500 },
-    { id: 2, des: "item 2", qty: 88, price: 150 },
-    { id: 3, des: "item 3", qty: 65, price: 80 },
-    { id: 4, des: "item 4", qty: 78, price: 900 },
-  ]);
   const orderAmount = sales.reduce((total, sale) => total + sale.cost, 0);
 
-  const [rems, setRem] = useState([
-    { id: 1, des: "item 1", qty: 15, price: 500 },
-    { id: 2, des: "item 2", qty: 28, price: 150 },
-    { id: 3, des: "item 3", qty: 5, price: 500 },
-    { id: 4, des: "item 4", qty: 8, price: 150 },
-  ]);
+
   const RemAmount = rems.reduce((acc, rem) => acc + rem.price, 0);
 
   function handleDateChange(event) {
