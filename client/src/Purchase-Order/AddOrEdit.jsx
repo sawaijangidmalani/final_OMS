@@ -14,7 +14,7 @@ const AddOrEdit = ({ onPurchaseData, onCancel }) => {
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/item/getItems");
+        const res = await axios.get("https://final-oms.onrender.com/item/getItems");
         console.log(res.data.data);
         setItems(res.data.data);
         if (res.data.data.length > 0) {

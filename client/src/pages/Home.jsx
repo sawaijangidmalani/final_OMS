@@ -111,7 +111,7 @@ function Home() {
     if (validForm()) {
       try {
         const { data } = await axios.post(
-          "http://localhost:8000/auth/login",
+          "https://final-oms.onrender.com/auth/login",
           name
         );
         console.log(data);

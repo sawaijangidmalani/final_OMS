@@ -198,7 +198,7 @@ function ManagePurchase() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/po/getpo")
+      .get("https://final-oms.onrender.com/po/getpo")
       .then((response) => {
         setPurchaseData(response.data);
       })
@@ -246,7 +246,7 @@ function ManagePurchase() {
 
   const handleDelete = async (status, name) => {
     try {
-      const response = await axios.delete("http://localhost:8000/po/deletepo", {
+      const response = await axios.delete("https://final-oms.onrender.com/po/deletepo", {
         data: { name, status },
       });
       console.log("Success:", response.data);

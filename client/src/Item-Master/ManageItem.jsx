@@ -88,7 +88,7 @@ function ManageItem() {
   const [items, setItems] = useState([]);
   
   useEffect(()=>{
-    axios.get("http://localhost:8000/item/getItems").then((data)=>{
+    axios.get("https://final-oms.onrender.com/item/getItems").then((data)=>{
       if(!data?.data?.error){
         setItems(data?.data?.data)  
         // return console.log("good request ");
@@ -115,7 +115,7 @@ function ManageItem() {
   };
 
   const handleDelete = (name) => {
-    axios.delete("http://localhost:8000/item/deleteItems", {
+    axios.delete("https://final-oms.onrender.com/item/deleteItems", {
       data: { id: name }
   })
   .then(() => {

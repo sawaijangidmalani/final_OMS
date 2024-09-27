@@ -95,7 +95,7 @@ function ManageItemStock() {
   const [dropdownOpenSupplier, setDropdownOpenSupplier] = useState(false);
 
   useEffect(()=>{
-    axios.get("http://localhost:8000/item/getItems").then((data)=>{
+    axios.get("https://final-oms.onrender.com/item/getItems").then((data)=>{
       setItem(data.data.data)      
     }).catch(()=>{
       console.log("not done")

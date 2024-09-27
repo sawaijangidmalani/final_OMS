@@ -131,7 +131,7 @@ function Dashboard() {
   useEffect(() => {
     // Fetch Purchase Orders
     axios
-      .get("http://localhost:8000/po/getpo")
+      .get("https://final-oms.onrender.com/po/getpo")
       .then((res) => {
         setItem(res.data);
       })
@@ -141,7 +141,7 @@ function Dashboard() {
 
     // Fetch Customer POs
     axios
-      .get("http://localhost:8000/customerPo/getCustomerPo")
+      .get("https://final-oms.onrender.com/customerPo/getCustomerPo")
       .then((res) => {
         setSale(res.data);
       })
@@ -151,7 +151,7 @@ function Dashboard() {
 
     // Fetch Remaining Purchase Orders
     axios
-      .get("http://localhost:8000/customerPo/getRemainingPurchaseOrder")
+      .get("https://final-oms.onrender.com/customerPo/getRemainingPurchaseOrder")
       .then((res) => {
         if (res.data.success) {
           setRem(res.data.data);

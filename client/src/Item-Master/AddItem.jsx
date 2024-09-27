@@ -49,7 +49,7 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/supplier/getSuppliers")
+      .get("https://final-oms.onrender.com/supplier/getSuppliers")
       .then((response) => {
         const suppliersData = response.data.data;
         setSuppliers(suppliersData);
@@ -83,7 +83,7 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
     if (editItem) {
       console.log(formData);
       axios
-        .put("http://localhost:8000/item/updateItems", formData)
+        .put("https://final-oms.onrender.com/item/updateItems", formData)
         .then(() => {
           alert("Item updated successfully");
         })
@@ -92,7 +92,7 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
         });
     } else {
       axios
-        .post("http://localhost:8000/item/insertItems", formData)
+        .post("https://final-oms.onrender.com/item/insertItems", formData)
         .then((response) => {
           console.log("Item added:", response.data);
           setItem([...items, { ...formData, id: response.data.itemId }]);

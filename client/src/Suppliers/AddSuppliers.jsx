@@ -63,9 +63,9 @@ function AddSuppliers({ suppliers, closeModal, editingSuppliers, updateSupplierL
       let response;
       
       if (editingSuppliers) {
-        response = await axios.put("http://localhost:8000/supplier/editSupplier", formData);
+        response = await axios.put("https://final-oms.onrender.com/supplier/editSupplier", formData);
       } else {
-        response = await axios.post("http://localhost:8000/supplier/addSupplier", formData);
+        response = await axios.post("https://final-oms.onrender.com/supplier/addSupplier", formData);
       }
       
       const { data } = response;

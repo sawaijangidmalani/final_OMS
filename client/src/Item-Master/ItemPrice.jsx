@@ -43,11 +43,11 @@ function ItemPrice({ handleClose }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const itemsResponse = await axios.get("http://localhost:8000/item/getItems");
+        const itemsResponse = await axios.get("https://final-oms.onrender.com/item/getItems");
         const namesFromResponse = itemsResponse.data.data.map(item => item.name);
         setNames(namesFromResponse);
         
-        const editItemDetailsResponse = await axios.get("http://localhost:8000/item/getEditItemDetails");
+        const editItemDetailsResponse = await axios.get("https://final-oms.onrender.com/item/getEditItemDetails");
         console.log(editItemDetailsResponse.data);
         setData(editItemDetailsResponse.data)
         
@@ -69,7 +69,7 @@ function ItemPrice({ handleClose }) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    axios.post("http://localhost:8000/item/editItemStock",formData)
+    axios.post("https://final-oms.onrender.com/item/editItemStock",formData)
 
     setData([...data, formData]);
 

@@ -107,7 +107,7 @@ const Option = styled.div`
 function ManageCustomer() {
   const [customers, setCustomers] = useState([]);
   useEffect(()=>{
-     axios.get("http://localhost:8000/customer/getCustomerData").then((result)=>{
+     axios.get("https://final-oms.onrender.com/customer/getCustomerData").then((result)=>{
       setCustomers(result.data)
      }).catch((err)=>{
       console.log(err)
@@ -130,7 +130,7 @@ function ManageCustomer() {
     setCustomers(filteredCustomers);
   };
   const handleDelete = (email) => {
-    axios.post("http://localhost:8000/customer/deleteCustomer",{email}).then((result)=>{
+    axios.post("https://final-oms.onrender.com/customer/deleteCustomer",{email}).then((result)=>{
       alert("User deleted successfully");
       window.location.reload();
       console.log(result)

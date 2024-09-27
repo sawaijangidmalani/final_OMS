@@ -92,7 +92,7 @@ function ManageSupplier() {
   useEffect(() => {
     const fetchSuppliers = async () => {
       try {
-        const { data } = await axios.get("http://localhost:8000/supplier/getSuppliers");
+        const { data } = await axios.get("https://final-oms.onrender.com/supplier/getSuppliers");
         if (data?.status) {
           setSuppliers(data.data);
         } else {
@@ -127,7 +127,7 @@ function ManageSupplier() {
   };
 
   const handleDelete = (id) => {
-    axios.delete("http://localhost:8000/supplier/deleteSupplier", { data: { id } })
+    axios.delete("https://final-oms.onrender.com/supplier/deleteSupplier", { data: { id } })
       .then(response => {
 
         alert("Deleted")

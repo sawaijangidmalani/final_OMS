@@ -21,11 +21,11 @@ const SalesOrder = ({ onSalesData, addCustomer, addInvoice, saleData, onClose })
   const [addclick, setAddClick] = useState(false);
 
   useEffect(() => {
-    axios.get("http://localhost:8000/customer/getCustomerData").then((res) => {
+    axios.get("https://final-oms.onrender.com/customer/getCustomerData").then((res) => {
       setCustomerData(res.data);
     });
 
-    axios.get("http://localhost:8000/customerpo/getCustomerPo").then((res) => {
+    axios.get("https://final-oms.onrender.com/customerpo/getCustomerPo").then((res) => {
       setCustomerPoData(res.data);
 
       const calculatedTotal = res.data.reduce((acc, po) => acc + po.quantity * po.unitPrice, 0); // Assuming there's a `unitPrice` field in the PO data

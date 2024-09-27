@@ -35,7 +35,7 @@ function AddSalesItem({ items, handleDeleteItem }) {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    axios.get("http://localhost:8000/customerpo/getCustomerPo")
+    axios.get("https://final-oms.onrender.com/customerpo/getCustomerPo")
       .then((res) => {
         setItemsData(res.data);
         const totalCost = res.data.reduce((acc, item) => acc + (item.cost || 0), 0);
@@ -47,7 +47,7 @@ function AddSalesItem({ items, handleDeleteItem }) {
   }, []);
 
   const handleDelete = (invoice) => {
-    axios.delete(`http://localhost:8000/customerpo/delete`, { data: { invoice } })
+    axios.delete(`https://final-oms.onrender.com/customerpo/delete`, { data: { invoice } })
       .then((response) => {
         console.log("Item deleted successfully");
         setItemsData(prevItems => prevItems.filter(item => item.invoice !== invoice));

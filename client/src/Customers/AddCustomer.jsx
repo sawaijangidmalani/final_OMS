@@ -59,7 +59,7 @@ function AddCustomer({ customers, closeModal, editingCustomer, updateCustomerLis
     e.preventDefault();
   
     if (editingCustomer) {
-      axios.post("http://localhost:8000/customer/updateCustomer", formData)
+      axios.post("https://final-oms.onrender.com/customer/updateCustomer", formData)
         .then(response => {
           alert("User updated");
           navigate("/customer");  
@@ -69,7 +69,7 @@ function AddCustomer({ customers, closeModal, editingCustomer, updateCustomerLis
           console.error('Error updating customer:', error);
         });
     } else {
-      axios.post("http://localhost:8000/customer/add_customer", formData)
+      axios.post("https://final-oms.onrender.com/customer/add_customer", formData)
         .then(response => {
           alert("Customer saved successfully");
           window.location.reload();

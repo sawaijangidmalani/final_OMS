@@ -7,7 +7,7 @@ const AddOrEditCustomer = ({ onPurchaseData, onClose }) => {
 
   useEffect(() => {
     console.log("hello")
-    axios.get("http://localhost:8000/item/getItems")
+    axios.get("https://final-oms.onrender.com/item/getItems")
       .then((res) => {
         setProducts(res.data.data); 
         console.log(res.data.data); 
@@ -48,31 +48,7 @@ const AddOrEditCustomer = ({ onPurchaseData, onClose }) => {
     }
   };
 
-  // const handleSubmit = async(event) => {
-  //   event.preventDefault();
-  //   const item = {
-  //     customer,
-  //     availableQty,
-  //     qtyAllocated,
-  //     remainingQty,
-  //     invoice,
-  //     date,
-  //   };
-  //   console.log("param")
-  //   onPurchaseData(item);
-  //   setCustomer("");
-  //   setAvailableQty("");
-  //   setQtyAllocated("");
-  //   setRemainingQty("");
-  //   setInvoice("");
-  //   setDate("");
-  //   console.log(item);
-  //   await axios.post("http://localhost:8000/customerPo/insertCustomerPo",item).then((res)=>{
-  //     console.log(res);
-  //   }).then(()=>{
-  //     alert("PO inserted")
-  //   })
-  // };
+  
   const handleSubmit = async (event) => {
     event.preventDefault();
     
@@ -100,7 +76,7 @@ const AddOrEditCustomer = ({ onPurchaseData, onClose }) => {
     setDate("");
     console.log(item);
   
-    await axios.post("http://localhost:8000/customerPo/insertCustomerPo", item)
+    await axios.post("https://final-oms.onrender.com/customerPo/insertCustomerPo", item)
       .then((res) => {
         console.log(res);
       })

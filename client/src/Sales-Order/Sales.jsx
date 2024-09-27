@@ -192,7 +192,7 @@ function Sales() {
         }
   
         // Fetch new data from the API
-        const response = await axios.get("http://localhost:8000/po/getpo");
+        const response = await axios.get("https://final-oms.onrender.com/po/getpo");
         const fetchedData = response.data;
         
         // Update state and local storage with the fetched data
