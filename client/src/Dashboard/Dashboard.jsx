@@ -2,9 +2,9 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import styled from "styled-components";
 
-function isDateString(dateString) {
-  return !isNaN(Date.parse(dateString));
-}
+// function isDateString(dateString) {
+//   return !isNaN(Date.parse(dateString));
+// }
 
 function getTodayDate() {
   const today = new Date();
@@ -127,9 +127,8 @@ function Dashboard() {
   const [purchase, setItem] = useState([]);
   const [sales, setSale] = useState([]);
   const [rems, setRem] = useState([]);
-  console.log(purchase);
+
   useEffect(() => {
-    // Fetch Purchase Orders
     axios
       .get("https://final-oms.onrender.com/po/getpo")
       .then((res) => {
@@ -139,7 +138,6 @@ function Dashboard() {
         console.error("Error fetching purchase orders:", error);
       });
 
-    // Fetch Customer POs
     axios
       .get("https://final-oms.onrender.com/customerPo/getCustomerPo")
       .then((res) => {
@@ -148,10 +146,10 @@ function Dashboard() {
       .catch((error) => {
         console.error("Error fetching customer POs:", error);
       });
-
-    // Fetch Remaining Purchase Orders
     axios
-      .get("https://final-oms.onrender.com/customerPo/getRemainingPurchaseOrder")
+      .get(
+        "https://final-oms.onrender.com/customerPo/getRemainingPurchaseOrder"
+      )
       .then((res) => {
         if (res.data.success) {
           setRem(res.data.data);
@@ -171,8 +169,10 @@ function Dashboard() {
     );
   }, 0);
 
-  const orderAmount = sales.reduce((total, sale) => total + sale.cost, 0);
-
+  const orderAmount = sales.reduce(
+    (total, sale) => total + (parseFloat(sale.cost) || 0),
+    0
+  );
 
   const RemAmount = rems.reduce((acc, rem) => acc + rem.price, 0);
 
@@ -319,9 +319,8 @@ function Dashboard() {
               ))}
             </tbody>
           </StyledTable>
-          {/* <h3>Order Amount: {orderAmount.toFixed(2)}</h3> */}
-          <h3>Order Amount: {Number(orderAmount).toFixed(2)}</h3>
 
+          <h3>Order Amount: {Number(orderAmount || 0).toFixed(2)}</h3>
         </div>
         <div>
           <h3>Purchase Order</h3>
@@ -333,12 +332,23 @@ function Dashboard() {
                 <th>Price</th>
               </tr>
             </thead>
+
             <tbody>
               {purchase.map((item) => (
                 <tr key={item.id}>
-                  <td>{item?.item?.[0]?.customer || "N/A"}</td>
-                  <td>{item?.item?.[0]?.qtyAllocated || "N/A"}</td>
-                  <td>{item?.item?.[0]?.price || "N/A"}</td>
+                  <td>
+                    {item?.item?.[0]?.customer ? item.item[0].customer : ""}
+                  </td>
+                  <td>
+                    {item?.item?.[0]?.qtyAllocated
+                      ? item.item[0].qtyAllocated
+                      : ""}
+                  </td>
+                  <td>
+                    {item?.item?.[0]?.price
+                      ? Number(item.item[0].price).toFixed(2)
+                      : ""}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -360,16 +370,14 @@ function Dashboard() {
                 <tr key={index}>
                   <td>{rem.name}</td>
                   <td>{rem.qty}</td>
-                  {/* <td>{rem.price.toFixed(2)}</td> */}
-                  <td>{Number(rem.price).toFixed(2)}</td>
 
+                  <td>{Number(rem.price || 0).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
           </StyledTable>
-          {/* <h3>Remaining Purchase: {RemAmount.toFixed(2)}</h3> */}
-          <h3>Remaining Purchase: {Number(RemAmount).toFixed(2)}</h3>
 
+          <h3>Remaining Purchase: {parseFloat(RemAmount || 0).toFixed(2)}</h3>
         </div>
       </StyledDv>
 

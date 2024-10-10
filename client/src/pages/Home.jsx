@@ -142,7 +142,7 @@ function Home() {
               />
             </div>
             <Form onSubmit={onSubmits}>
-              <h2>Sign-in</h2>
+              {/* <h2>Sign-in</h2> */}
               <InputGroup>
                 <Input
                   type="email"
@@ -178,10 +178,10 @@ function Home() {
                   to="/forgot"
                   style={{ textDecoration: "none", float: "right" }}
                 >
-                  Forgot Password?
+                  Forgot Password ?
                 </Link>
               </div>
-              <Button type="submit">Sign-in</Button>
+              <Button type="submit">Log-in</Button>
             </Form>
           </FormContainer>
         </StyledDiv>

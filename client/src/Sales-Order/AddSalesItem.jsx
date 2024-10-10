@@ -35,10 +35,15 @@ function AddSalesItem({ items, handleDeleteItem }) {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    axios.get("https://final-oms.onrender.com/customerpo/getCustomerPo")
+    // Fetch customer PO data when the component mounts
+    axios
+      .get("https://final-oms.onrender.com/customerpo/getCustomerPo")
       .then((res) => {
         setItemsData(res.data);
-        const totalCost = res.data.reduce((acc, item) => acc + (item.cost || 0), 0);
+        const totalCost = res.data.reduce(
+          (acc, item) => acc + (item.cost || 0),
+          0
+        );
         setTotal(totalCost);
       })
       .catch((error) => {
@@ -46,12 +51,21 @@ function AddSalesItem({ items, handleDeleteItem }) {
       });
   }, []);
 
-  const handleDelete = (invoice) => {
-    axios.delete(`https://final-oms.onrender.com/customerpo/delete`, { data: { invoice } })
+  const handleDelete = (unitcost) => {
+    // Call API to delete item by unit cost
+    axios
+      .delete(`https://final-oms.onrender.com/customerpo/delete`, {
+        data: { unitcost },
+      })
       .then((response) => {
         console.log("Item deleted successfully");
-        setItemsData(prevItems => prevItems.filter(item => item.invoice !== invoice));
-        const newTotal = itemsData.filter(item => item.invoice !== invoice).reduce((acc, item) => acc + (item.cost || 0), 0);
+        // Update state after deletion
+        setItemsData((prevItems) =>
+          prevItems.filter((item) => item.unitcost !== unitcost)
+        );
+        const newTotal = itemsData
+          .filter((item) => item.unitcost !== unitcost)
+          .reduce((acc, item) => acc + (item.cost || 0), 0);
         setTotal(newTotal);
       })
       .catch((error) => {
@@ -59,7 +73,12 @@ function AddSalesItem({ items, handleDeleteItem }) {
       });
   };
 
-  
+  const handleUpdate = (invoice, cost) => {
+    // Handle the update action here (you can implement your own logic)
+    console.log(`Edit clicked for Invoice: ${invoice}, Cost: ${cost}`);
+    // You can implement modal opening, form for update, or API call
+  };
+
   return (
     <>
       <Table className="table table-bordered table-striped table-hover shadow">
@@ -67,8 +86,8 @@ function AddSalesItem({ items, handleDeleteItem }) {
           <HeadTr>
             <Th>Item</Th>
             <Th>Qty</Th>
-            <Th>Date</Th>
-            <Th>Invoice</Th>
+            <Th>Unit Cost</Th>
+            <Th>Tax</Th>
             <Th>Sales Price</Th>
             <Th>Action</Th>
           </HeadTr>
@@ -78,18 +97,18 @@ function AddSalesItem({ items, handleDeleteItem }) {
             <Tr key={index}>
               <Td>{item.name}</Td>
               <Td>{item.quantity}</Td>
-              <Td>{item.date}</Td>
-              <Td>{item.invoice}</Td>
+              <Td>{item.unitcost}</Td>
+              <Td>{item.tax}</Td>
               <Td>{item.cost}</Td>
               <Td>
-                  {/* <BiEdit 
-                    onClick={() => handleUpdate(item.invoice, item.cost)}
-                    style={{ marginRight: '10px', cursor: 'pointer' }} 
-                  /> */}  
-                  {/* No form given */}
-                <BiTrash 
-                  onClick={() => handleDelete(item.invoice)}  
-                  style={{ cursor: 'pointer' }} 
+                <BiEdit
+                  onClick={() => handleUpdate(item.invoice, item.cost)}
+                  style={{ marginRight: "10px", cursor: "pointer" }}
+                />
+
+                <BiTrash
+                  onClick={() => handleDelete(item.unitcost)}
+                  style={{ cursor: "pointer" }}
                 />
               </Td>
             </Tr>

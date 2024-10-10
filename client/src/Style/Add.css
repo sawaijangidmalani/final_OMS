@@ -1,3 +1,78 @@
+/* * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.heading {
+  padding: 1.5rem;
+  font-size: large;
+  font-family: "Trebuchet MS", sans-serif;
+  color: cadetblue;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn {
+  border: none;
+  border-radius: 10%;
+  padding: 0.5rem;
+  background-color: #ffb535;
+  color: #00c49a;
+}
+
+.customerpage {
+  background-color: rgb(240, 240, 240);
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+  padding: 1rem 1rem;
+}
+
+.form {
+  padding: 1.2rem 0.5rem;
+  margin-top: 0.8rem;
+  background-color: rgb(223, 237, 241);
+}
+
+.form-group {
+  flex: 0 0 50%;
+  padding: 0.5rem;
+}
+
+label {
+  float: left;
+}
+.additional {
+  padding-bottom: 15px;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+input {
+  width: calc(100% - 1rem);
+  padding: 0.5rem;
+  border-radius: 0.3rem;
+  border: 1px solid #fcf4f4;
+  box-sizing: border-box;
+  margin-bottom: 0.5rem;
+}
+
+.submit,
+.cancel {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 0.3rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  margin-right: 0.5rem;
+}
+
+.cancel {
+  background-color: rgb(92, 92, 228);
+} */
+
+
 .form-heading {
   text-align: center;
   margin-top: 0;
@@ -139,4 +214,22 @@ input {
 
 .cancel {
   background-color: rgb(92, 92, 228);
+}
+
+.modal{
+  position: fixed;
+  z-index: 100;
+  top: 5%;
+  left: 35%;
+  border-radius: 20px;
+}
+.style-model{
+  position: fixed;
+  z-index: 100;
+  width: 100%;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  background-color: none;
+  backdrop-filter: blur(3px);
 }

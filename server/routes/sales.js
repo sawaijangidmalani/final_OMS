@@ -4,9 +4,9 @@ import con from "../utils/db.js";
 const router = express.Router();
 
 // Get all suppliers
-router.get('/suppliers', async (req, res) => {
+router.get('/sales', async (req, res) => {
   try {
-    const [rows] = await con.query('SELECT * FROM suppliers');
+    const [rows] = await con.query('SELECT * FROM customer_po');
     res.json({ status: true, data: rows });
   } catch (error) {
     console.error("Error fetching suppliers:", error);
@@ -15,11 +15,11 @@ router.get('/suppliers', async (req, res) => {
 });
 
 // Add a new supplier
-router.post("/addSupplier", async (req, res) => {
+router.post("/add_customer_po", async (req, res) => {
   const { name, email, phone, area, address, city, status, gstn } = req.body;
 
   const sql = `
-    INSERT INTO suppliers (name, email, phone, area, address, city, status, gstn)
+    INSERT INTO customer_po (name, email, phone, area, address, city, status, gstn)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
@@ -43,7 +43,7 @@ router.post("/addSupplier", async (req, res) => {
 
 // Get all suppliers (duplicate of /suppliers)
 router.get("/getSuppliers", async (req, res) => {
-  const sql = "SELECT * FROM suppliers";
+  const sql = "SELECT * FROM customer_po";
 
   try {
     const [results] = await con.query(sql);
@@ -55,11 +55,11 @@ router.get("/getSuppliers", async (req, res) => {
 });
 
 // Edit supplier details
-router.put("/editSupplier", async (req, res) => {
+router.put("/edit_customer_po", async (req, res) => {
   const { name, email, phone, area, address, city, status, gstn } = req.body;
 
   const sql = `
-    UPDATE suppliers 
+    UPDATE customer_po 
     SET name = ?, phone = ?, area = ?, address = ?, city = ?, status = ?, gstn = ?
     WHERE email = ?
   `;
@@ -88,11 +88,11 @@ router.put("/editSupplier", async (req, res) => {
 });
 
 // Delete a supplier
-router.delete("/deleteSupplier", async (req, res) => {
+router.delete("/delete_customer_po", async (req, res) => {
   const { email } = req.body;
 
   const sql = `
-    DELETE FROM suppliers 
+    DELETE FROM customer_po 
     WHERE email = ?
   `;
 
@@ -110,4 +110,4 @@ router.delete("/deleteSupplier", async (req, res) => {
   }
 });
 
-export { router as supplierRouter };
+export { router as customer_poRouter };

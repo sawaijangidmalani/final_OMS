@@ -8,7 +8,7 @@ body {
 .navbr {
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-between;
   box-shadow: 0 0 10px rgba(190, 174, 174, 0.3);
   position: relative;
   background-color: #d8dee9;
@@ -52,8 +52,8 @@ nav a.active {
 .login .form {
   width: 100%;
   max-width: 500px;
- height: 300px;
-  margin: 150px ;
+  height: 300px;
+  margin: 150px;
   padding: 20px;
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -108,7 +108,6 @@ nav a.active {
   text-decoration: underline;
 }
 
-
 .login {
   position: relative;
   width: 100%;
@@ -142,8 +141,8 @@ nav a.active {
 
 .logo {
   display: flex;
-  align-items: center; 
-  color: #124E66;
+  align-items: center;
+  color: #124e66;
   font-size: 2.5rem;
 }
 
@@ -152,36 +151,34 @@ nav a.active {
   align-items: center;
   justify-content: center;
   color: rgba(73, 55, 58, 0.801);
-  /* padding: 5px; */
+  padding: 5px;
   cursor: pointer;
   background-color: white;
   border-radius: 50%;
-  width: 30px; 
-  height: 30px; 
-  font-size: 22px; 
+  width: 30px;
+  height: 30px;
+  font-size: 22px;
   font-weight: bold;
   line-height: 1;
 }
 
 .span {
-  display: inline-flex; 
-  align-items: center; 
-  justify-content: center; 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin: 0 10px;
   color: rgba(73, 55, 58, 0.801);
   padding: px;
   cursor: pointer;
   background-color: white;
   border-radius: 50%;
-  width: 30px; 
-  height: 30px; 
+  width: 30px;
+  height: 30px;
 }
-
 
 .homeicon {
-  vertical-align: middle; 
+  vertical-align: middle;
 }
-
 
 @media screen and (max-width: 768px) {
   .navbr {
@@ -218,12 +215,11 @@ nav a.active {
 
   img {
     margin-top: 40px;
- 
   }
 
   nav a {
     color: rgb(18, 88, 193);
-    /* text-decoration: none; */
+    text-decoration: none;
     padding: 5px;
     border-radius: 5px;
     font-weight: 800;
@@ -247,7 +243,7 @@ nav a.active {
 }
 
 .input-groups input {
-  padding-right: 2.5rem; 
+  padding-right: 2.5rem;
   width: 100%;
   height: 2.5rem;
   border: 1px solid #ccc;
@@ -291,18 +287,14 @@ nav a.active {
   background-color: olive;
   width: 100%;
   gap: 120rem;
-  padding: 1.5rem 2rem; 
+  padding: 1.5rem 2rem;
 }
-
 
 .savebotton {
   display: flex;
   justify-content: space-between;
   padding-top: 2rem;
 }
-
-
-
 
 .forms {
   width: 25%;
@@ -396,7 +388,6 @@ nav a.active {
   background-color: #5751d9;
 }
 
-
 @media (max-width: 768px) {
   .container {
     flex-direction: column;
@@ -412,4 +403,245 @@ nav a.active {
 
 .conentdetails {
   padding-top: 8rem;
+}
+*/ body {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+.navbr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  position: relative;
+  width: 100%;
+  z-index: 1000;
+  gap: 40rem;
+  padding: 20px;
+}
+
+.navbr h2 {
+  margin: 0;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+}
+
+nav a {
+  color: rgb(18, 88, 193);
+  text-decoration: none;
+  padding: 8px;
+  border-radius: 5px;
+  font-weight: 800;
+  font-size: 17px;
+  border: 1px solid #124e88;
+  transition: transform 0.4s ease;
+}
+
+nav a:hover {
+  color: white;
+  background-color: #288af3;
+  transform: scale(1.1);
+}
+
+nav a.active {
+  background-color: #4caf50;
+}
+
+.icon {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  transform: translateY(-40%);
+  cursor: pointer;
+}
+.btns {
+  border: none;
+  outline: none;
+  color: #124e88;
+  background: none;
+}
+.btns:hover {
+  color: blue;
+}
+.btns:focus {
+  border: none;
+  outline: none;
+}
+
+
+
+.buttons-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.img {
+  width: 50%;
+  object-fit: cover;
+}
+
+.forms {
+  border: 0px solid grey;
+  border-radius: 10px;
+  margin: 80px;
+  padding: 30px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.form-forget {
+  border: 0px solid grey;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: absolute;
+}
+
+.forms h2 {
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 30px;
+}
+
+.input-groups {
+  margin-bottom: 20px;
+}
+
+.input-groups div {
+  position: relative;
+}
+
+.input-groups input {
+  width: 100%;
+  height: 35px;
+  padding: 12px 40px 12px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  outline: none;
+  font-size: 16px;
+}
+
+.input-groups input:focus {
+  border-color: #6c63ff;
+}
+
+.icon {
+  position: absolute;
+  right: 12px;
+  top: 40%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #888;
+}
+
+.icon:hover {
+  color: #333;
+}
+
+.error {
+  color: red;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.switch {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.switch a {
+  color: #6c63ff;
+  font-size: 14px;
+}
+
+.switch a:hover {
+  text-decoration: underline;
+}
+
+.buton[type="submit"] {
+  width: 100%;
+  padding: 12px;
+  background-color: #6c63ff;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.buton[type="submit"]:hover {
+  background-color: #5751d9;
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+  .forms h2 {
+    font-size: 20px;
+  }
+  .container img {
+    width: 100%;
+    height: 40vh;
+  }
+}
+
+
+
+.signup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-right: 60px;
+}
+
+.signup h2 {
+  display: flex;
+  align-items: center;
+  /* background-color: white; */
+  border-radius: 10px;
+  width: auto;
+  padding: 8px 15px ;
+  margin-left: 30px;
+  font-size: 30px;
+  color: #124E66;
+  height: 40px;
+}
+
+.signup .signup-icon {
+  font-size: 4rem;
+  transform: rotate(180deg);
+  color: white;
+  cursor: pointer;
+  transition: color 0.3s;
+  margin-top: 14px;
+    margin-right: -35px;
+}
+
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .navbr h2 {
+    font-size: 1.4rem;
+    margin-left: 10px;
+  }
+
+  .signup h2 {
+    font-size: 1.2rem;
+  }
+
+  .signup .signup-icon {
+    font-size: 1.8rem;
+  }
 }

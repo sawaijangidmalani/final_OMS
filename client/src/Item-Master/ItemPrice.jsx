@@ -3,6 +3,17 @@ import { BiEdit, BiTrash } from "react-icons/bi";
 import styled from "styled-components";
 import axios from "axios";
 
+const formStyle = {
+  width: '550px',
+  height: '550px',
+  margin: '0 auto', 
+  border: '1px solid #ccc',
+  boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)', 
+  display: 'flex',
+  flexDirection: 'column', 
+  gap: '10px' 
+};
+
 const Modal = styled.div`
   position: relative;
   z-index: 100;
@@ -102,7 +113,7 @@ function ItemPrice({ handleClose }) {
     <>
       <StyledModel>
         <Modal>
-          <form onSubmit={handleSubmit} className="customer-form">
+          <form onSubmit={handleSubmit} className="customer-form" style={formStyle}>
             <h3 className="form-heading">Add / Edit Item Stock</h3>
             <label className="customer-form__label">
               Item Name:

@@ -94,6 +94,8 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
       axios
         .post("https://final-oms.onrender.com/item/insertItems", formData)
         .then((response) => {
+          alert("Item added successfully");
+          window.location.reload();
           console.log("Item added:", response.data);
           setItem([...items, { ...formData, id: response.data.itemId }]);
         })
@@ -117,7 +119,6 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
           <Modal>
             <form onSubmit={handleSubmit} className="customer-form">
               <h3 className="form-heading">Add / Edit Item</h3>
-
               <label htmlFor="name" className="customer-form__label">
                 Item Name:
               </label>
@@ -168,7 +169,7 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
                 className="customer-form__input"
               />
 
-              <label htmlFor="quantity" className="customer-form__label">
+              {/* <label htmlFor="quantity" className="customer-form__label">
                 Quantity:
               </label>
               <input
@@ -188,7 +189,7 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
                 value={formData.price}
                 onChange={handleInputChange}
                 className="customer-form__input"
-              />
+              /> */}
 
               <label htmlFor="description" className="customer-form__label">
                 Description:
@@ -236,7 +237,6 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
                   Cancel
                 </button>
               </div>
-              
             </form>
           </Modal>
         </StyledModel>

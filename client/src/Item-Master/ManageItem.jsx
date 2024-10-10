@@ -6,6 +6,7 @@ import ItemPrice from "./ItemPrice";
 import { BiInfoCircle, BiPackage, BiSolidEdit } from "react-icons/bi";
 import { MdDelete } from "react-icons/md";
 import axios from "axios";
+import { Tooltip } from "antd";
 
 const StyledDiv = styled.div`
   display: flex;
@@ -176,7 +177,7 @@ function ManageItem() {
 
   return (
     <>
-      <h1>Manage Items:</h1>
+      <h1>Manage Items</h1>
       <StyledDiv>
         <DropdownContainer>
           <DropdownButton onClick={toggleItemDropdown}>
@@ -212,7 +213,7 @@ function ManageItem() {
         </ButtonContainer>
       </StyledDiv>
       <div className="conentdetails">
-        <h2>Item List:</h2>
+        <h2>Item List</h2>
         <div>
           <table className="table table-bordered table-striped table-hover shadow mt-4">
             <thead className="table-secondary">
@@ -239,15 +240,33 @@ function ManageItem() {
                   <td>{item.status}</td>
                   <td>
                     <div className="buttons-group">
+                      <Tooltip
+                      title="Edit"
+                      overlayInnerStyle={{
+                        backgroundColor: "rgb(41, 10, 244)",
+                        color: "white",
+                        borderRadius: "10%",
+                      }}
+                      >
                       <button className="btns" onClick={() => handleEditItem(item)}>
                         <BiSolidEdit />
                       </button>
+                      </Tooltip>
                       <button className="btns" onClick={handleStocks}>
                         <BiPackage />
                       </button>
+                      <Tooltip
+                      title="Delete"
+                      overlayInnerStyle={{
+                        backgroundColor: "rgb(244, 10, 10)",
+                        color: "white",
+                        borderRadius: "10%",
+                      }}
+                      >
                       <button className="btns" onClick={() => handleDelete(item.name)}>
                         <MdDelete />
                       </button>
+                      </Tooltip>
                       <button className="btns" onClick={handleStock}>
                         <BiInfoCircle />
                       </button>

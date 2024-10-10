@@ -1,143 +1,78 @@
 import { useEffect, useState } from "react";
-import styled from "styled-components";
 import AddCustomer from "./AddCustomer";
 import { BiSolidEdit } from "react-icons/bi";
 import { MdDelete } from "react-icons/md";
+import { BiSearch, BiAddToQueue } from "react-icons/bi";
 import axios from "axios";
-
-const StyledDiv = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  
-`;
-
-const StyledIn = styled.input`
-  width: 200px;
-  height: 45px;
-  margin-top: 20px;
-  
-`;
-
-const StyledSelect = styled.select`
-  width: 200px;
-  height: 40px;
-  background-color: white;
-  color: #333;
-  /* padding-left: 10px; */
-  font-size: 16px;
-  border: none;
-  border-radius: 5px;
-  margin: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-`;
-
-const ButtonContainer = styled.div`
-  display: flex;
-  justify-content: space-around;
-  padding: 20px;
-  gap: 15px;
-`;
-
-const StyledButton = styled.button`
-  font-size: 16px;
-  color: #ffffff;
-  background-color: #4e647b;
-  margin-top: 15px;
-  height: 50px;
-  border: none;
-  padding: 5px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-
-  &:hover {
-    background-color: #0056b3;
-  }
-
-  &:focus {
-    outline: none;
-  }
-`;
-
-const DropdownContainer = styled.div`
-  position: relative;
-`;
-
-const DropdownButton = styled.button`
-  width: 200px;
-  height: 40px;
-  background-color: white;
-  color: #333;
-  padding-left: 10px;
-  font-size: 16px;
-  border: none;
-  border-radius: 5px;
-  margin: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  text-align: left;
-  cursor: pointer;
-
-  &:focus {
-    outline: none;
-  }
-`;
-
-const DropdownOptions = styled.div`
-  position: absolute;
-  width: 200px;
-  max-height: 150px;
-  overflow-y: auto;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 1;
-`;
-
-const Option = styled.div`
-  padding: 10px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #f0f0f0;
-  }
-`;
+import { Tooltip, Pagination, Modal, Popconfirm } from "antd";
+import "../Style/Customer.css";
 
 function ManageCustomer() {
   const [customers, setCustomers] = useState([]);
-  useEffect(()=>{
-     axios.get("https://final-oms.onrender.com/customer/getCustomerData").then((result)=>{
-      setCustomers(result.data)
-     }).catch((err)=>{
-      console.log(err)
-     })
-  },[])
-
   const [searchTerm, setSearchTerm] = useState("");
+  const [visible, setVisible] = useState(false);
   const [showModal, setShowModal] = useState("");
   const [editingCustomer, setEditingCustomer] = useState(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(8);
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
+
+  // Fetch customer data from API
+  useEffect(() => {
+    axios
+      .get("https://final-oms.onrender.com/customer/getCustomerData")
+      .then((result) => {
+        setCustomers(result.data);
+        setFilteredCustomers(result.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
 
   const handleInputChange = (e) => {
-    setSearchTerm(e.target.value);
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    if (value === "") {
+      setFilteredCustomers(customers);
+      setCurrentPage(1);
+    } else {
+      handleSearch();
+    }
   };
 
   const handleSearch = () => {
-    const filteredCustomers = customers.filter((customer) =>
-      customer.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = customers.filter(
+      (customer) =>
+        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.phone.includes(searchTerm)
     );
-    setCustomers(filteredCustomers);
+
+    setFilteredCustomers(filtered);
+    setCurrentPage(1);
   };
+
+  const startIndex = (currentPage - 1) * pageSize;
+  const currentData = filteredCustomers.slice(
+    startIndex,
+    startIndex + pageSize
+  );
+
   const handleDelete = (email) => {
-    axios.post("https://final-oms.onrender.com/customer/deleteCustomer",{email}).then((result)=>{
-      alert("User deleted successfully");
-      window.location.reload();
-      console.log(result)
-    }).catch((err)=>{
-      console.log(err)
-    })
-    return console.log(email)
+    axios
+      .post("https://final-oms.onrender.com/customer/deleteCustomer", { email })
+      .then((result) => {
+        alert("Customer deleted successfully");
+        setCustomers(customers.filter((customer) => customer.email !== email));
+        setFilteredCustomers(
+          filteredCustomers.filter((customer) => customer.email !== email)
+        );
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   const handleAddCustomer = () => {
@@ -148,6 +83,10 @@ function ManageCustomer() {
   const handleEditCustomer = (customer) => {
     setEditingCustomer(customer);
     setShowModal(true);
+  };
+
+  const onPageChange = (page) => {
+    setCurrentPage(page);
   };
 
   const closeModal = () => {
@@ -164,52 +103,45 @@ function ManageCustomer() {
         return [...prevCustomers, newCustomer];
       }
     });
+    setFilteredCustomers((prevCustomers) => {
+      if (editingCustomer) {
+        return prevCustomers.map((customer) =>
+          customer.id === newCustomer.id ? newCustomer : customer
+        );
+      } else {
+        return [...prevCustomers, newCustomer];
+      }
+    });
     setShowModal(false);
-  };
-
-  const toggleDropdown = () => {
-    setDropdownOpen(!dropdownOpen);
-  };
-
-  const handleOptionClick = (option) => {
-    setSearchTerm(option);
-    setDropdownOpen(false);
   };
 
   return (
     <>
-      <div className="">
+      <div className="container">
         <h1>Manage Customers</h1>
-        <StyledDiv>
-          <DropdownContainer>
-            <DropdownButton onClick={toggleDropdown}>
-              {searchTerm || "Customer Name"}
-            </DropdownButton>
-            {dropdownOpen && (
-              <DropdownOptions>
-                {customers.map((customer) => (
-                  <Option key={customer.id} onClick={() => handleOptionClick(customer.name)}>
-                    {customer.name}
-                  </Option>
-                ))}
-              </DropdownOptions>
-            )}
-          </DropdownContainer>
-          <ButtonContainer>
-            <StyledIn
-              type="text"
-              value={searchTerm}
-              onChange={handleInputChange}
-              placeholder="Search by name..."
-            />
-            <StyledButton onClick={handleSearch}>Search</StyledButton>
-            <StyledButton onClick={handleAddCustomer}>Add Customer</StyledButton>
-          </ButtonContainer>
-        </StyledDiv>
+        <div className="StyledDiv">
+          <div className="ButtonContainer">
+            <div>
+              <input
+                className="StyledIn"
+                type="text"
+                value={searchTerm}
+                onChange={handleInputChange}
+                placeholder="Search"
+              />
+              <button className="StyledButtonSearch" onClick={handleSearch}>
+                <BiSearch /> Search
+              </button>
+            </div>
+            <button className="StyledButtonAdd" onClick={handleAddCustomer}>
+              <BiAddToQueue /> Add Customer
+            </button>
+          </div>
+        </div>
 
-        <div className="conentdetails">
-          <h2>Customer List:</h2>
-          <table className="table table-bordered table-striped table-hover shadow mt-5">
+        <div className="table-responsive">
+          <h2>Customer List</h2>
+          <table className="table table-bordered table-striped table-hover shadow">
             <thead className="table-secondary">
               <tr>
                 <th>Name</th>
@@ -221,7 +153,7 @@ function ManageCustomer() {
               </tr>
             </thead>
             <tbody>
-              {customers.map((customer) => (
+              {currentData.map((customer) => (
                 <tr key={customer.email}>
                   <td>{customer.name}</td>
                   <td>{customer.email}</td>
@@ -229,20 +161,64 @@ function ManageCustomer() {
                   <td>{customer.area}</td>
                   <td>{customer.status}</td>
                   <td>
-                    <div className="buttons-group">
-                      <button className="btns" onClick={() => handleEditCustomer(customer)}>
-                        <BiSolidEdit />
-                      </button>
-                      <button className="btns" onClick={() => handleDelete(customer.email)}>
-                        <MdDelete />
-                      </button>
+                    <div className="button-group">
+                      <Tooltip
+                        title="Edit"
+                        overlayInnerStyle={{
+                          backgroundColor: "rgb(41, 10, 244)",
+                          color: "white",
+                          borderRadius: "10%",
+                        }}
+                      >
+                        <button
+                          className="btns1"
+                          onClick={() => handleEditCustomer(customer)}
+                        >
+                          <BiSolidEdit />
+                        </button>
+                      </Tooltip>
+
+                      <Tooltip
+                        title="Delete"
+                        overlayInnerStyle={{
+                          backgroundColor: "rgb(244, 10, 10)",
+                          color: "white",
+                          borderRadius: "10%",
+                        }}
+                      >
+                        <Popconfirm
+                          placement="topLeft"
+                          description="Are you sure to delete this customer?"
+                          onConfirm={() => handleDelete(customer.email)}
+                          okText="Delete"
+                        >
+                          <button className="btns2">
+                            <MdDelete />
+                          </button>
+                        </Popconfirm>
+                      </Tooltip>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          <Pagination
+            current={currentPage}
+            total={filteredCustomers.length}
+            pageSize={pageSize}
+            onChange={onPageChange}
+            showSizeChanger={false}
+          />
         </div>
+
+        <Modal
+          open={visible}
+          onOk={() => setVisible(false)}
+          onCancel={() => setVisible(false)}
+          footer={null}
+        ></Modal>
+
         {showModal && (
           <AddCustomer
             customers={customers}

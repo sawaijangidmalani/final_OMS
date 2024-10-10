@@ -73,7 +73,7 @@ const PurchaseOrder = ({ onPurchaseData }) => {
           <label htmlFor="customer" className="customer-salesorder_label">
             Customer:
           </label>
-          <select
+          {/* <select
             id="customer"
             value={Default}
             onChange={(event) => setCustomer(event.target.value)}
@@ -83,7 +83,25 @@ const PurchaseOrder = ({ onPurchaseData }) => {
             {customers.map((cust) => (
               <option key={cust.name} value={cust.name}>{cust.name}</option>
             ))}
-          </select>
+          </select> */}
+
+
+<select
+  id="customer"
+  value={Default}
+  onChange={(event) => setCustomer(event.target.value)}
+  className="customer-salesorder_input"
+>
+  <option value="param">Select a Customer</option>
+  {(Array.isArray(customers) ? customers : []).map((cust) => (
+    <option key={cust.name} value={cust.name}>
+      {cust.name}
+    </option>
+  ))}
+</select>
+
+
+
           <label htmlFor="purchaseOrder" className="purchase-order-label">
             Purchase Order:
           </label>
@@ -131,19 +149,22 @@ const PurchaseOrder = ({ onPurchaseData }) => {
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
           </select>
-          <button type="button" onClick={handleAddItemClick} className="add-item">
-            Add Item
-          </button>
-
-          <AddPurchaseItem purchaseItems={items} />
-
-          <div className="buttons-group">
-            <button type="submit" className="btns">
-              Save
-            </button>
-            <button type="button" onClick={handleCancel} className="btns">
-              Cancel
-            </button>
+          <div className="customer-form__button-container">
+                  <button
+                    type="submit"
+                    value="submit"
+                    className="customer-form__button"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    className="customer-form__button"
+                  >
+                    Cancel
+                  </button>
+                
           </div>
         </form>
       )}
