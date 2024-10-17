@@ -6,7 +6,7 @@ const router = express.Router();
 // Get all suppliers
 router.get('/suppliers', async (req, res) => {
   try {
-    const [rows] = await con.query('SELECT * FROM suppliers');
+    const [rows] = await pool.query('SELECT * FROM suppliers');
     res.json({ status: true, data: rows });
   } catch (error) {
     console.error("Error fetching suppliers:", error);
@@ -24,7 +24,7 @@ router.post("/addSupplier", async (req, res) => {
   `;
 
   try {
-    await con.query(sql, [
+    await pool.query(sql, [
       name,
       email,
       phone,
@@ -46,7 +46,7 @@ router.get("/getSuppliers", async (req, res) => {
   const sql = "SELECT * FROM suppliers";
 
   try {
-    const [results] = await con.query(sql);
+    const [results] = await pool.query(sql);
     res.status(200).json({ status: true, data: results });
   } catch (err) {
     console.error("Error fetching supplier data:", err);
@@ -65,7 +65,7 @@ router.put("/editSupplier", async (req, res) => {
   `;
 
   try {
-    const [result] = await con.query(sql, [
+    const [result] = await pool.query(sql, [
       name,
       phone,
       area,
@@ -97,7 +97,7 @@ router.delete("/deleteSupplier", async (req, res) => {
   `;
 
   try {
-    const [result] = await con.query(sql, [email]);
+    const [result] = await pool.query(sql, [email]);
 
     if (result.affectedRows > 0) {
       res.json({ status: true, message: "Supplier data deleted successfully" });

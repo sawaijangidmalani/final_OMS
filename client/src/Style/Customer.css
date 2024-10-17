@@ -255,38 +255,15 @@ h3 {
 }
 
 
-
-/*Item Price*/
-
-.form-divide {
-  justify-content: space-between;
-}
-
-.item-form__input {
-  width: 70%;
-  font-size: 20px;
-  padding: 20px;
-  border: 1px solid lightgray;
-  border-radius: 5px;
-  margin-top: 10px;
-}
-
-.item-form__label {
-  margin-bottom: 30px;
-  font-size: 20px;
-  color: #555;
+.item-price-form {
+  background-color: #eceeef;
   display: flex;
   flex-direction: column;
+  width: 650px;
+  padding: 30px;
+  margin-left: -50px;
+  border-radius: 10px;
+  height: auto;
+  position: absolute;
+  box-shadow: 0 5px 7px rgba(0, 0, 0, 0.2);
 }
-
-.item-value {
-  display: flex;
-  justify-content: space-between;
-}
-
-.itempricelist {
-  margin: 25px 0 10px 0;
-}
-
-
-

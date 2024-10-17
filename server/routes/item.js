@@ -1,5 +1,5 @@
 import express from "express";
-import con from "../utils/db.js";
+import pool from "../utils/db.js";
 
 const router = express.Router();
 
@@ -51,7 +51,7 @@ router.post("/insertItems", async (req, res) => {
   ];
 
   try {
-    const [results] = await con.query(query, values);
+    const [results] = await pool.query(query, values);
     res.status(201).json({
       error: false,
       message: "Item added successfully",
@@ -73,8 +73,8 @@ router.get("/getItems", async (req, res) => {
   const countQuery = "SELECT COUNT(*) as totalItems FROM item_master;";
 
   try {
-    const [data] = await con.query(query, [parseInt(limit), parseInt(offset)]);
-    const [countResult] = await con.query(countQuery);
+    const [data] = await pool.query(query, [parseInt(limit), parseInt(offset)]);
+    const [countResult] = await pool.query(countQuery);
 
     const totalItems = countResult[0].totalItems;
     const totalPages = Math.ceil(totalItems / limit);
@@ -119,7 +119,7 @@ router.put("/updateItems", async (req, res) => {
   const values = [supplier, category, brand, description, unit, status, name];
 
   try {
-    const [results] = await con.query(query, values);
+    const [results] = await pool.query(query, values);
 
     if (results.affectedRows === 0) {
       return sendErrorResponse(res, 404, "Item not found");

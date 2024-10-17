@@ -3,6 +3,9 @@ import { BiEdit, BiTrash } from "react-icons/bi";
 import styled from "styled-components";
 import axios from "axios";
 import "../Style/Customer.css";
+import { Tooltip, Popconfirm } from "antd";
+import { MdDelete } from "react-icons/md";
+import { BiSolidEdit } from "react-icons/bi";
 
 const Modal = styled.div`
   position: fixed;
@@ -10,9 +13,6 @@ const Modal = styled.div`
   top: 5%;
   left: 35%;
   border-radius: 20px;
-  background-color: white;
-  padding: 20px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 `;
 
 function ItemPrice({ handleClose, selectedItemName }) {
@@ -21,23 +21,16 @@ function ItemPrice({ handleClose, selectedItemName }) {
   const [editItemId, setEditItemId] = useState(null);
 
   const [formData, setFormData] = useState({
-    name: selectedItemName || "",
     price: "",
     qty: "",
     date: "",
   });
 
   useEffect(() => {
-    if (selectedItemName) {
-      setFormData((prev) => ({ ...prev, name: selectedItemName }));
-    }
-  }, [selectedItemName]);
-
-  useEffect(() => {
     const fetchItemPrices = async () => {
       try {
         const response = await axios.get(
-          "https://final-oms.onrender.com/item/getItemPrices"
+          "http://localhost:8000/itemPrice/getItemPrices"
         );
         setItemPriceData(response.data);
       } catch (error) {
@@ -53,187 +46,201 @@ function ItemPrice({ handleClose, selectedItemName }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-
   const handleSubmit = async (event) => {
-    event.preventDefault();
-    console.log("Submitting form data:", formData); // Log form data
+    event.preventDefault(); // Prevent the default form submission behavior
+    // console.log("Submitting form data:", formData);
+
     try {
       if (isEditing) {
-        // Update existing item
-        await axios.put(
-          `https://final-oms.onrender.com/item/editItemPrice/${editItemId}`,
+        // Update existing item price
+        const response = await axios.put(
+          `http://localhost:8000/itemPrice/updateItemPrice/${editItemId}`, // Ensure this matches the backend route
           formData
         );
-        setItemPriceData((prevData) =>
-          prevData.map((item) =>
-            item._id === editItemId ? { ...item, ...formData } : item
+        setItemPriceData(
+          itemPriceData.map((item) =>
+            item.id === editItemId ? response.data : item
           )
         );
+        alert("Item price updated successfully!"); // Alert for successful update
       } else {
-        // Add new item
+        // Add new item price
         const response = await axios.post(
-          "https://final-oms.onrender.com/item/addItemPrice",
+          "http://localhost:8000/itemPrice/addItemPrice", // Ensure this matches backend route
           formData
-          
         );
-        console.log("Add item response:", response.data); // Check response
         setItemPriceData([...itemPriceData, response.data]);
-        
+        alert("Item price added successfully!"); // Alert for successful addition
       }
 
-      // Reset form and state
-      setFormData({
-        name: selectedItemName || "",
-        price: "",
-        qty: "",
-        date: "",
-      });
+      // Reset the form and state
+      setFormData({ price: "", qty: "", date: "" });
       setIsEditing(false);
       setEditItemId(null);
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("Failed to add item price: " + error.message);
+      alert("Failed to add/update item price: " + error.message);
     }
   };
 
   const handleEdit = (item) => {
     setFormData({
-      name: item.name,
       price: item.price,
       qty: item.qty,
       date: item.date,
     });
     setIsEditing(true);
-    setEditItemId(item._id);
+    setEditItemId(item.id);
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this item?")) return;
+    // if (!window.confirm("Are you sure you want to delete this item?")) return;
 
     try {
       await axios.delete(
-        `https://final-oms.onrender.com/item/deleteItemPrice/${id}`
+        `http://localhost:8000/itemPrice/deleteItemPrice/${id}`
       );
-      setItemPriceData(itemPriceData.filter((item) => item._id !== id));
+      setItemPriceData(itemPriceData.filter((item) => item.id !== id));
+      alert("Item price deleted successfully!"); // Alert for successful deletion
     } catch (error) {
       console.error("Error deleting item:", error);
+      alert("Failed to delete item price: " + error.message); // Alert for deletion failure
     }
   };
 
   const handleCancel = () => {
     handleClose();
-    setFormData({
-      name: selectedItemName || "",
-      price: "",
-      qty: "",
-      date: "",
-    });
+    setFormData({ price: "", qty: "", date: "" });
     setIsEditing(false);
   };
 
   return (
-    <Modal>
-      <div className="body-container">
-        <form onSubmit={handleSubmit} className="customer-form">
-          <h3 className="form-heading">
-            {isEditing ? "Edit Item Price" : "Add Item Price"}
-          </h3>
+    <div className="style-model">
+      <Modal>
+        <div className="body-container">
+          <form onSubmit={handleSubmit} className="item-price-form">
+            <h3 className="form-heading">
+              {isEditing ? "Edit Item Price" : "Add Item Price"}
+            </h3>
 
-          <label className="customer-form__label">
-            Item Name:
-            <p>{selectedItemName}</p>
-          </label>
+            <label className="customer-form__label">
+              Item Name: <strong>{selectedItemName}</strong>
+            </label>
 
-          <label className="customer-form__label">
-            Purchase Price:
-            <input
-              type="text"
-              name="price"
-              value={formData.price}
-              onChange={handleInputChange}
-              className="customer-form__input"
-              required
-            />
-          </label>
+            <label className="customer-form__label">
+              Purchase Price:
+              <input
+                type="text"
+                name="price"
+                value={formData.price}
+                onChange={handleInputChange}
+                className="customer-form__input"
+                required
+              />
+            </label>
 
-          <label className="customer-form__label">
-            Date:
-            <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleInputChange}
-              className="customer-form__input"
-              required
-            />
-          </label>
+            <label className="customer-form__label">
+              Date:
+              <input
+                type="date"
+                name="date"
+                value={formData.date}
+                onChange={handleInputChange}
+                className="customer-form__input"
+                required
+              />
+            </label>
 
-          <label className="customer-form__label">
-            Quantity:
-            <input
-              type="text"
-              name="qty"
-              value={formData.qty}
-              onChange={handleInputChange}
-              className="customer-form__input"
-              required
-            />
-          </label>
+            <label className="customer-form__label">
+              Quantity:
+              <input
+                type="text"
+                name="qty"
+                value={formData.qty}
+                onChange={handleInputChange}
+                className="customer-form__input"
+                required
+              />
+            </label>
 
-          <div className="table-responsive">
-            <h2>Item Price for: {selectedItemName}</h2>
-            <table className="table table-bordered table-striped table-hover shadow">
-              <thead className="table-secondary">
-                <tr>
-                  <th>Price</th>
-                  <th>Quantity</th>
-                  <th>Date</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {itemPriceData.map((item) => (
-                  <tr key={item._id}>
-                    <td>{item.price}</td>
-                    <td>{item.qty}</td>
-                    <td>{item.date}</td>
-                    <td>
-                      <div className="button-group">
-                        <button
-                          className="btns1"
-                          onClick={() => handleEdit(item)}
-                        >
-                          <BiEdit />
-                        </button>
-                        <button
-                          className="btns2"
-                          onClick={() => handleDelete(item._id)}
-                        >
-                          <BiTrash />
-                        </button>
-                      </div>
-                    </td>
+            <div className="table-responsive">
+              <p>Item Price for: {selectedItemName}</p>
+              <table className="table table-bordered table-striped table-hover shadow">
+                <thead className="table-secondary">
+                  <tr>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Date</th>
+                    <th>Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {itemPriceData.map((item) => (
+                    <tr key={item.id}>
+                      <td>{item.price}</td>
+                      <td>{item.qty}</td>
+                      <td>{item.date}</td>
+                      <td>
+                        <div className="button-group">
+                          <Tooltip
+                            title="Edit"
+                            overlayInnerStyle={{
+                              backgroundColor: "rgb(41, 10, 244)",
+                              color: "white",
+                              borderRadius: "5px",
+                            }}
+                          >
+                            <button
+                              className="btns1"
+                              onClick={() => handleEditItem(item)}
+                            >
+                              <BiSolidEdit />
+                            </button>
+                          </Tooltip>
 
-          <div className="customer-form__button-container">
-            <button type="submit" className="customer-form__button">
-              {isEditing ? "Update" : "Save"}
-            </button>
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="customer-form__button"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </Modal>
+                          <Tooltip
+                            title="Delete"
+                            overlayInnerStyle={{
+                              backgroundColor: "rgb(244, 10, 10)",
+                              color: "white",
+                              borderRadius: "5px",
+                            }}
+                          >
+                            <Popconfirm
+                              placement="topLeft"
+                              description="Are you sure to delete this item Price?"
+                              onConfirm={() => handleDelete(item.id)}
+                              okText="Delete"
+                            >
+                              <button className="btns1">
+                                <MdDelete />
+                              </button>
+                            </Popconfirm>
+                          </Tooltip>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="customer-form__button-container">
+              <button type="submit" className="customer-form__button">
+                {isEditing ? "Update" : "Save"}
+              </button>
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="customer-form__button"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </Modal>
+    </div>
   );
 }
 
