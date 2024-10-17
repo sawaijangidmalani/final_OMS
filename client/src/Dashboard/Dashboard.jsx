@@ -224,164 +224,166 @@ function Dashboard() {
 
   return (
     <>
-      <h1>Dashboard - Profit & Loss</h1>
-      <StyledDiv>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <DropdownContainer>
-            <DropdownButton onClick={toggleDropdownCustomer}>
-              {selectedCustomer || "Customer Name"}
-            </DropdownButton>
-            {dropdownOpenCustomer && (
-              <DropdownOptions>
-                {sales.map((sale) => (
-                  <Option
-                    key={sale.id}
-                    onClick={() => handleCustomerSelect(sale.des)}
-                  >
-                    {sale.des}
-                  </Option>
+      <div className="container">
+        <h1>Dashboard - Profit & Loss</h1>
+        <StyledDiv>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <DropdownContainer>
+              <DropdownButton onClick={toggleDropdownCustomer}>
+                {selectedCustomer || "Customer Name"}
+              </DropdownButton>
+              {dropdownOpenCustomer && (
+                <DropdownOptions>
+                  {sales.map((sale) => (
+                    <Option
+                      key={sale.id}
+                      onClick={() => handleCustomerSelect(sale.des)}
+                    >
+                      {sale.des}
+                    </Option>
+                  ))}
+                </DropdownOptions>
+              )}
+            </DropdownContainer>
+            <StyledLabel htmlFor="orderDate">Order Date:</StyledLabel>
+            <StyledInput
+              type="date"
+              id="orderDate"
+              onChange={handleDateChange}
+              max={todayDate}
+            />
+            To
+            <StyledInput
+              type="date"
+              id="endDate"
+              onChange={handleDateChange}
+              max={todayDate}
+            />
+            <DropdownContainer>
+              <DropdownButton onClick={toggleDropdownCustomerPO}>
+                {selectedCustomerPO || "Customer PO"}
+              </DropdownButton>
+              {dropdownOpenCustomerPO && (
+                <DropdownOptions>
+                  {sales.map((sale) => (
+                    <Option
+                      key={sale.id}
+                      onClick={() => handleCustomerPOSelect(sale.des)}
+                    >
+                      {sale.des}
+                    </Option>
+                  ))}
+                </DropdownOptions>
+              )}
+            </DropdownContainer>
+            <DropdownContainer>
+              <DropdownButton onClick={toggleDropdownPO}>
+                {selectedPO || "Purchase Order"}
+              </DropdownButton>
+              {dropdownOpenPO && (
+                <DropdownOptions>
+                  {purchase.map((item) => (
+                    <Option
+                      key={item.id}
+                      onClick={() => handlePOSelect(item.des)}
+                    >
+                      {item.des}
+                    </Option>
+                  ))}
+                </DropdownOptions>
+              )}
+            </DropdownContainer>
+          </div>
+          <ButtonContainer>
+            <StyledButton>Search</StyledButton>
+          </ButtonContainer>
+        </StyledDiv>
+
+        <StyledDv>
+          <div className="tables">
+            <h3>Customer PO Details</h3>
+            <StyledTable className="table table-bordered table-striped table-hover shadow">
+              <thead className="table-secondary">
+                <tr>
+                  <th>Description</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sales.map((sale, index) => (
+                  <tr key={sale.id || index}>
+                    <td>{sale.name}</td>
+                    <td>{sale.quantity}</td>
+                    <td>{sale.cost}</td>
+                  </tr>
                 ))}
-              </DropdownOptions>
-            )}
-          </DropdownContainer>
-          <StyledLabel htmlFor="orderDate">Order Date:</StyledLabel>
-          <StyledInput
-            type="date"
-            id="orderDate"
-            onChange={handleDateChange}
-            max={todayDate}
-          />
-          To
-          <StyledInput
-            type="date"
-            id="endDate"
-            onChange={handleDateChange}
-            max={todayDate}
-          />
-          <DropdownContainer>
-            <DropdownButton onClick={toggleDropdownCustomerPO}>
-              {selectedCustomerPO || "Customer PO"}
-            </DropdownButton>
-            {dropdownOpenCustomerPO && (
-              <DropdownOptions>
-                {sales.map((sale) => (
-                  <Option
-                    key={sale.id}
-                    onClick={() => handleCustomerPOSelect(sale.des)}
-                  >
-                    {sale.des}
-                  </Option>
-                ))}
-              </DropdownOptions>
-            )}
-          </DropdownContainer>
-          <DropdownContainer>
-            <DropdownButton onClick={toggleDropdownPO}>
-              {selectedPO || "Purchase Order"}
-            </DropdownButton>
-            {dropdownOpenPO && (
-              <DropdownOptions>
+              </tbody>
+            </StyledTable>
+
+            <h3>Order Amount: {Number(orderAmount || 0).toFixed(2)}</h3>
+          </div>
+          <div>
+            <h3>Purchase Order</h3>
+            <StyledTable className="table table-bordered table-striped table-hover shadow">
+              <thead className="table-secondary">
+                <tr>
+                  <th>Description</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+
+              <tbody>
                 {purchase.map((item) => (
-                  <Option
-                    key={item.id}
-                    onClick={() => handlePOSelect(item.des)}
-                  >
-                    {item.des}
-                  </Option>
+                  <tr key={item.id}>
+                    <td>
+                      {item?.item?.[0]?.customer ? item.item[0].customer : ""}
+                    </td>
+                    <td>
+                      {item?.item?.[0]?.qtyAllocated
+                        ? item.item[0].qtyAllocated
+                        : ""}
+                    </td>
+                    <td>
+                      {item?.item?.[0]?.price
+                        ? Number(item.item[0].price).toFixed(2)
+                        : ""}
+                    </td>
+                  </tr>
                 ))}
-              </DropdownOptions>
-            )}
-          </DropdownContainer>
-        </div>
-        <ButtonContainer>
-          <StyledButton>Search</StyledButton>
-        </ButtonContainer>
-      </StyledDiv>
-
-      <StyledDv>
-        <div className="tables">
-          <h3>Customer PO Details</h3>
-          <StyledTable className="table table-bordered table-striped table-hover shadow">
-            <thead className="table-secondary">
-              <tr>
-                <th>Description</th>
-                <th>Qty</th>
-                <th>Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sales.map((sale, index) => (
-                <tr key={sale.id || index}>
-                  <td>{sale.name}</td>
-                  <td>{sale.quantity}</td>
-                  <td>{sale.cost}</td>
+              </tbody>
+            </StyledTable>
+            <h3>Purchase Amount: {purchaseAmount.toFixed(2)}</h3>
+          </div>
+          <div>
+            <h3>Remaining Purchase Order</h3>
+            <StyledTable className="table table-bordered table-striped table-hover shadow">
+              <thead className="table-secondary">
+                <tr>
+                  <th>Description</th>
+                  <th>Qty</th>
+                  <th>Price</th>
                 </tr>
-              ))}
-            </tbody>
-          </StyledTable>
+              </thead>
+              <tbody>
+                {rems.map((rem, index) => (
+                  <tr key={index}>
+                    <td>{rem.name}</td>
+                    <td>{rem.qty}</td>
 
-          <h3>Order Amount: {Number(orderAmount || 0).toFixed(2)}</h3>
-        </div>
-        <div>
-          <h3>Purchase Order</h3>
-          <StyledTable className="table table-bordered table-striped table-hover shadow">
-            <thead className="table-secondary">
-              <tr>
-                <th>Description</th>
-                <th>Qty</th>
-                <th>Price</th>
-              </tr>
-            </thead>
+                    <td>{Number(rem.price || 0).toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </StyledTable>
 
-            <tbody>
-              {purchase.map((item) => (
-                <tr key={item.id}>
-                  <td>
-                    {item?.item?.[0]?.customer ? item.item[0].customer : ""}
-                  </td>
-                  <td>
-                    {item?.item?.[0]?.qtyAllocated
-                      ? item.item[0].qtyAllocated
-                      : ""}
-                  </td>
-                  <td>
-                    {item?.item?.[0]?.price
-                      ? Number(item.item[0].price).toFixed(2)
-                      : ""}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </StyledTable>
-          <h3>Purchase Amount: {purchaseAmount.toFixed(2)}</h3>
-        </div>
-        <div>
-          <h3>Remaining Purchase Order</h3>
-          <StyledTable className="table table-bordered table-striped table-hover shadow">
-            <thead className="table-secondary">
-              <tr>
-                <th>Description</th>
-                <th>Qty</th>
-                <th>Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rems.map((rem, index) => (
-                <tr key={index}>
-                  <td>{rem.name}</td>
-                  <td>{rem.qty}</td>
+            <h3>Remaining Purchase: {parseFloat(RemAmount || 0).toFixed(2)}</h3>
+          </div>
+        </StyledDv>
 
-                  <td>{Number(rem.price || 0).toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </StyledTable>
-
-          <h3>Remaining Purchase: {parseFloat(RemAmount || 0).toFixed(2)}</h3>
-        </div>
-      </StyledDv>
-
-      <h2>Profit/Loss: {(orderAmount - purchaseAmount).toFixed(2)}</h2>
+        <h2>Profit/Loss: {(orderAmount - purchaseAmount).toFixed(2)}</h2>
+      </div>
     </>
   );
 }

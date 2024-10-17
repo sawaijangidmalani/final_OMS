@@ -16,8 +16,8 @@ import ManagePurchase from "./Purchase-Order/ManagePurchase";
 // import AddCustomer from "./AddCustomer";
 import GlobalStyle from "./GlobalStyled";
 import ItemPrice from "./Item-Master/ItemPrice";
-import ManageItemStock from "./ItemStockMaster/ManageItemStock";
-import EditItemPrice from "./ItemStockMaster/EditItemPrice";
+// import ManageItemStock from "./ItemStockMaster/ManageItemStock";
+// import EditItemPrice from "./ItemStockMaster/EditItemPrice";
 import Home from "./pages/Home";
 
 function App() {
@@ -39,8 +39,8 @@ function App() {
             <Route path="/sales" element={<Sales />} />
             <Route path="/purchaseorder" element={<ManagePurchase />} />
             {/* <Route path="/addcustomer" element={<AddCustomer />} /> */}
-            <Route path="/itemstock" element={<ManageItemStock />} />
-            <Route path="/itemstock/editprice" element={<EditItemPrice />} />
+            {/* <Route path="/itemstock" element={<ManageItemStock />} /> */}
+            {/* <Route path="/itemstock/editprice" element={<EditItemPrice />} /> */}
           </Route>
         </Routes>
       </BrowserRouter>

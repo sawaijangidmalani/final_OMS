@@ -1,34 +1,17 @@
 import axios from "axios";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 
 const Modal = styled.div`
-  position: relative;
+  position: fixed;
   z-index: 100;
   top: 5%;
-  border-radius: 5px;
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-  left: 30%;
+  left: 35%;
   border-radius: 20px;
-  background-color: #f5f8f9;
-  padding: 20px;
-`;
-
-const StyledModel = styled.div`
-  position: absolute;
-  z-index: 100;
-  width: 100%;
-  height: 100vh;
-  top: 0;
-  left: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(2px);
 `;
 
 const AddItem = ({ items, setItem, editItem, closeModal }) => {
-  useEffect(() => {
-    console.log("hello");
-  }, []);
+  useEffect(() => {}, []);
 
   const initialData = {
     id: null,
@@ -46,6 +29,7 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
   const [formData, setFormData] = useState({ ...initialData });
   const [suppliers, setSuppliers] = useState([]);
   const [formVisible, setFormVisible] = useState(true);
+  const modalRef = useRef(null);
 
   useEffect(() => {
     axios
@@ -70,12 +54,25 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
     }
   }, [editItem]);
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? (checked ? "active" : "inactive") : value,
-    });
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        closeModal(); // Close the modal if clicked outside
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [modalRef, closeModal]);
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -86,6 +83,7 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
         .put("https://final-oms.onrender.com/item/updateItems", formData)
         .then(() => {
           alert("Item updated successfully");
+          window.location.reload();
         })
         .catch((err) => {
           console.error("Error updating item:", err);
@@ -115,8 +113,8 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
   return (
     <>
       {formVisible && (
-        <StyledModel>
-          <Modal>
+        <div className="style-model">
+          <Modal ref={modalRef}>
             <form onSubmit={handleSubmit} className="customer-form">
               <h3 className="form-heading">Add / Edit Item</h3>
               <label htmlFor="name" className="customer-form__label">
@@ -128,7 +126,8 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
                 value={formData.name}
                 onChange={handleInputChange}
                 className="customer-form__input"
-                disabled={!!editItem} // Disable the field if editing
+                required
+                disabled={!!editItem}
               />
 
               <label htmlFor="supplier" className="customer-form__label">
@@ -156,6 +155,7 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
                 value={formData.category}
                 onChange={handleInputChange}
                 className="customer-form__input"
+                required
               />
 
               <label htmlFor="brand" className="customer-form__label">
@@ -167,6 +167,7 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
                 value={formData.brand}
                 onChange={handleInputChange}
                 className="customer-form__input"
+                required
               />
 
               {/* <label htmlFor="quantity" className="customer-form__label">
@@ -209,6 +210,7 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
                 value={formData.unit}
                 onChange={handleInputChange}
                 className="customer-form__input"
+                required
               >
                 <option value="KG">KG</option>
                 <option value="PCS">PCS</option>
@@ -217,13 +219,16 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
               <label htmlFor="status" className="customer-form__label">
                 Status:
               </label>
-              <input
-                type="checkbox"
+              <select
                 name="status"
-                checked={formData.status === "active"}
+                value={formData.status}
                 onChange={handleInputChange}
                 className="customer-form__input"
-              />
+                required
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
 
               <div className="customer-form__button-container">
                 <button type="submit" className="customer-form__button">
@@ -239,7 +244,7 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
               </div>
             </form>
           </Modal>
-        </StyledModel>
+        </div>
       )}
     </>
   );

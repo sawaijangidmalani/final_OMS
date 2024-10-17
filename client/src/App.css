@@ -4,7 +4,6 @@ body {
   box-sizing: border-box;
 }
 
-
 .navbr {
   display: flex;
   align-items: center;
@@ -14,7 +13,7 @@ body {
   background-color: #d8dee9;
   width: 100%;
   gap: 128rem;
-  padding: 1.5rem 2rem; 
+  padding: 1.5rem 2rem;
 }
 
 .navbr h2 {
@@ -23,7 +22,7 @@ body {
 
 nav {
   display: flex;
-  align-items: center; 
+  align-items: center;
 }
 
 nav a {
@@ -46,7 +45,6 @@ nav a:hover {
 nav a.active {
   background-color: #4caf50;
 }
-
 
 .form,
 .login .form {
@@ -460,21 +458,6 @@ nav a.active {
   transform: translateY(-40%);
   cursor: pointer;
 }
-.btns {
-  border: none;
-  outline: none;
-  color: #124e88;
-  background: none;
-}
-.btns:hover {
-  color: blue;
-}
-.btns:focus {
-  border: none;
-  outline: none;
-}
-
-
 
 .buttons-group {
   display: flex;
@@ -595,8 +578,6 @@ nav a.active {
   }
 }
 
-
-
 .signup {
   display: flex;
   align-items: center;
@@ -611,10 +592,10 @@ nav a.active {
   /* background-color: white; */
   border-radius: 10px;
   width: auto;
-  padding: 8px 15px ;
+  padding: 8px 15px;
   margin-left: 30px;
   font-size: 30px;
-  color: #124E66;
+  color: #124e66;
   height: 40px;
 }
 
@@ -625,10 +606,8 @@ nav a.active {
   cursor: pointer;
   transition: color 0.3s;
   margin-top: 14px;
-    margin-right: -35px;
+  margin-right: -35px;
 }
-
-
 
 /* Responsive Design */
 @media (max-width: 768px) {

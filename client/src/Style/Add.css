@@ -183,14 +183,14 @@ input {
   padding: 0.5rem;
 }
 
-label {
+/* label {
   float: left;
 }
 .additional {
   padding-bottom: 15px;
   margin-bottom: 10px;
   font-size: 18px;
-}
+} */
 
 input {
   width: calc(100% - 1rem);
@@ -233,3 +233,6 @@ input {
   background-color: none;
   backdrop-filter: blur(3px);
 }
+
+
+

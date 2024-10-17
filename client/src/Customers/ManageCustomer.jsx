@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import AddCustomer from "./AddCustomer";
-import { BiSolidEdit } from "react-icons/bi";
+import { BiSolidEdit, BiSearch, BiAddToQueue, BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
 import { MdDelete } from "react-icons/md";
-import { BiSearch, BiAddToQueue } from "react-icons/bi";
 import axios from "axios";
 import { Tooltip, Pagination, Modal, Popconfirm } from "antd";
 import "../Style/Customer.css";
@@ -16,6 +15,8 @@ function ManageCustomer() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(8);
   const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [sortField, setSortField] = useState("");
+  const [sortOrder, setSortOrder] = useState("asc"); 
 
   // Fetch customer data from API
   useEffect(() => {
@@ -54,16 +55,10 @@ function ManageCustomer() {
     setCurrentPage(1);
   };
 
-  const startIndex = (currentPage - 1) * pageSize;
-  const currentData = filteredCustomers.slice(
-    startIndex,
-    startIndex + pageSize
-  );
-
   const handleDelete = (email) => {
     axios
       .post("https://final-oms.onrender.com/customer/deleteCustomer", { email })
-      .then((result) => {
+      .then(() => {
         alert("Customer deleted successfully");
         setCustomers(customers.filter((customer) => customer.email !== email));
         setFilteredCustomers(
@@ -115,6 +110,30 @@ function ManageCustomer() {
     setShowModal(false);
   };
 
+  const handleSort = (field) => {
+    const order = sortField === field && sortOrder === "asc" ? "desc" : "asc";
+    setSortField(field);
+    setSortOrder(order);
+
+    const sortedCustomers = [...filteredCustomers].sort((a, b) => {
+      if (a[field] < b[field]) return order === "asc" ? -1 : 1;
+      if (a[field] > b[field]) return order === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    setFilteredCustomers(sortedCustomers);
+  };
+
+  const getSortArrow = (field) => {
+    if (sortField === field) {
+      return sortOrder === "asc" ? <BiUpArrowAlt /> : <BiDownArrowAlt />;
+    }
+    return null;
+  };
+
+  const startIndex = (currentPage - 1) * pageSize;
+  const currentData = filteredCustomers.slice(startIndex, startIndex + pageSize);
+
   return (
     <>
       <div className="container">
@@ -144,11 +163,21 @@ function ManageCustomer() {
           <table className="table table-bordered table-striped table-hover shadow">
             <thead className="table-secondary">
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Area</th>
-                <th>Status</th>
+                <th onClick={() => handleSort("name")}>
+                  Name {getSortArrow("name")}
+                </th>
+                <th onClick={() => handleSort("email")}>
+                  Email {getSortArrow("email")}
+                </th>
+                <th onClick={() => handleSort("phone")}>
+                  Phone {getSortArrow("phone")}
+                </th>
+                <th onClick={() => handleSort("area")}>
+                  Area {getSortArrow("area")}
+                </th>
+                <th onClick={() => handleSort("status")}>
+                  Status {getSortArrow("status")}
+                </th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -161,13 +190,13 @@ function ManageCustomer() {
                   <td>{customer.area}</td>
                   <td>{customer.status}</td>
                   <td>
-                    <div className="button-group">
+                    <div className="buttons-group">
                       <Tooltip
                         title="Edit"
                         overlayInnerStyle={{
                           backgroundColor: "rgb(41, 10, 244)",
                           color: "white",
-                          borderRadius: "10%",
+                          borderRadius: "5px",
                         }}
                       >
                         <button
@@ -183,7 +212,7 @@ function ManageCustomer() {
                         overlayInnerStyle={{
                           backgroundColor: "rgb(244, 10, 10)",
                           color: "white",
-                          borderRadius: "10%",
+                          borderRadius: "5px",
                         }}
                       >
                         <Popconfirm

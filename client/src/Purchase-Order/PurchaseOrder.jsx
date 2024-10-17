@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";  // Import useNavigate
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import AddPurchaseItem from "./AddPurchaseItem";
 import AddOrEdit from "./AddOrEdit";
 import axios from "axios";
@@ -15,9 +15,9 @@ const PurchaseOrder = ({ onPurchaseData }) => {
   const [showAddOrEdit, setShowAddOrEdit] = useState(false);
   const [Default, setDefault] = useState("param");
 
-  const navigate = useNavigate();  // Create the navigate function
+  const navigate = useNavigate(); // Create the navigate function
 
-  const handleSubmit = async(event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const data = { customer, customerpo, date, status, purchaseOrder, items };
     await axios.post("https://final-oms.onrender.com/po/insertpo", data);
@@ -31,18 +31,19 @@ const PurchaseOrder = ({ onPurchaseData }) => {
     setPurchaseOrder("");
     setItems([]);
 
-    navigate("/purchaseorder");  
+    navigate("/purchaseorder");
     window.location.reload();
-
   };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/customer/getCustomerData");
+        const response = await axios.get(
+          "http://localhost:8000/customer/getCustomerData"
+        );
         setCustomers(response.data);
       } catch (error) {
-        console.error('Error fetching customer data:', error);
+        console.error("Error fetching customer data:", error);
       }
     };
 
@@ -64,12 +65,14 @@ const PurchaseOrder = ({ onPurchaseData }) => {
   };
 
   return (
-    <>
+    <div>
       {showAddOrEdit ? (
         <AddOrEdit onPurchaseData={handleAddItem} onCancel={handleCancel} />
       ) : (
-        <form onSubmit={handleSubmit} className="salesorder-form">
-          <h3 className="salesorder-form-heading">Add / Edit Purchase Order</h3>
+        
+        <div className="body-container">
+        <form onSubmit={handleSubmit} className="customer-form">
+          <h3 className="form-heading">Add / Edit Purchase Order</h3>
           <label htmlFor="customer" className="customer-salesorder_label">
             Customer:
           </label>
@@ -85,22 +88,19 @@ const PurchaseOrder = ({ onPurchaseData }) => {
             ))}
           </select> */}
 
-
-<select
-  id="customer"
-  value={Default}
-  onChange={(event) => setCustomer(event.target.value)}
-  className="customer-salesorder_input"
->
-  <option value="param">Select a Customer</option>
-  {(Array.isArray(customers) ? customers : []).map((cust) => (
-    <option key={cust.name} value={cust.name}>
-      {cust.name}
-    </option>
-  ))}
-</select>
-
-
+          <select
+            id="customer"
+            value={Default}
+            onChange={(event) => setCustomer(event.target.value)}
+            className="customer-salesorder_input"
+          >
+            <option value="param">Select a Customer</option>
+            {(Array.isArray(customers) ? customers : []).map((cust) => (
+              <option key={cust.name} value={cust.name}>
+                {cust.name}
+              </option>
+            ))}
+          </select>
 
           <label htmlFor="purchaseOrder" className="purchase-order-label">
             Purchase Order:
@@ -150,25 +150,26 @@ const PurchaseOrder = ({ onPurchaseData }) => {
             <option value="Inactive">Inactive</option>
           </select>
           <div className="customer-form__button-container">
-                  <button
-                    type="submit"
-                    value="submit"
-                    className="customer-form__button"
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCancel}
-                    className="customer-form__button"
-                  >
-                    Cancel
-                  </button>
-                
+            <button
+              type="submit"
+              value="submit"
+              className="customer-form__button"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="customer-form__button"
+            >
+              Cancel
+            </button>
           </div>
         </form>
+        </div>
+       
       )}
-    </>
+    </div>
   );
 };
 
