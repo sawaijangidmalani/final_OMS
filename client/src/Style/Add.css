@@ -234,5 +234,13 @@ input {
   backdrop-filter: blur(3px);
 }
 
+.modal{
+  position: fixed;
+   z-index: 100;
+   top: 5%;
+   left: 35%;
+   border-radius: 20px;
+}
+
 
 

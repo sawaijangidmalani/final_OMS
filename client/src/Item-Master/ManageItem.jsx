@@ -8,6 +8,8 @@ import {
   BiSolidEdit,
   BiSearch,
   BiAddToQueue,
+  BiUpArrowAlt,
+  BiDownArrowAlt,
 } from "react-icons/bi";
 import { MdDelete } from "react-icons/md";
 import axios from "axios";
@@ -30,6 +32,8 @@ function ManageItem() {
   const [showStock, setShowStock] = useState(false);
   const [showStocks, setShowStocks] = useState(false);
   const [selectedItemName, setSelectedItemName] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: "", order: "asc" });
 
   useEffect(() => {
     axios.get("https://final-oms.onrender.com/item/getItems").then((data) => {
@@ -41,8 +45,19 @@ function ManageItem() {
   }, []);
 
   const handleShowStock = (item) => {
-    setSelectedItemName(item.name); // Store the selected item's name
+    setSelectedItemName(item.name);
     setShowStocks(true);
+  };
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    if (value === "") {
+      setFilteredItems(items);
+      setCurrentPage(1);
+    } else {
+      handleSearch();
+    }
   };
 
   const handleItemSelect = (itemName) => {
@@ -59,8 +74,13 @@ function ManageItem() {
 
   const handleSearch = () => {
     const filtered = items.filter(
-      (item) => item?.item?.toLowerCase().includes(searchTerm.toLowerCase()) // Safe navigation
+      (item) =>
+        item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.brand.includes(searchTerm) ||
+        item.unit.includes(searchTerm)
     );
+
     setFilteredItems(filtered);
     setCurrentPage(1);
   };
@@ -99,11 +119,31 @@ function ManageItem() {
     setCurrentPage(1);
   };
 
+  const getSortArrow = (key) => {
+    if (sortConfig.key === key) {
+      return sortConfig.order === "asc" ? <BiUpArrowAlt /> : <BiDownArrowAlt />;
+    }
+    return null;
+  };
+
   const startIndex = (currentPage - 1) * pageSize;
   const currentData = filteredItems.slice(startIndex, startIndex + pageSize);
 
   const onPageChange = (page) => {
     setCurrentPage(page);
+  };
+
+  const handleSort = (key) => {
+    const newOrder = sortConfig.order === "asc" ? "desc" : "asc";
+    setSortConfig({ key, order: newOrder });
+
+    const sortedItems = [...filteredItems].sort((a, b) => {
+      if (a[key] < b[key]) return newOrder === "asc" ? -1 : 1;
+      if (a[key] > b[key]) return newOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    setFilteredItems(sortedItems);
   };
 
   const handleDelete = (name) => {
@@ -223,12 +263,20 @@ function ManageItem() {
                     ))}
                 </div>
               )}
+              <input
+                className="StyledIn"
+                type="text"
+                value={searchTerm}
+                onChange={handleInputChange}
+                placeholder="Search"
+              />
+
+              <button className="StyledButtonSearch" onClick={handleSearch}>
+                <BiSearch /> Search
+              </button>
             </div>
           </div>
           <div className="RightContainer">
-            <button className="StyledButtonSearch" onClick={handleSearch}>
-              <BiSearch /> Search
-            </button>
             <button className="StyledButtonAdd" onClick={handleAddItem}>
               <BiAddToQueue /> Add Item
             </button>
@@ -240,13 +288,32 @@ function ManageItem() {
           <table className="table table-bordered table-striped table-hover shadow">
             <thead className="table-secondary">
               <tr>
-                <th>Item Name</th>
-                <th>Supplier</th>
-                <th>Category</th>
-                <th>Brand</th>
-                <th>Description</th>
-                <th>Unit</th>
-                <th>Status</th>
+                <th onClick={() => handleSort("item name")}>
+                  Item Name {getSortArrow("item name")}
+                </th>
+
+                <th onClick={() => handleSort("supplier")}>
+                  Supplier {getSortArrow("supplier")}
+                </th>
+                <th onClick={() => handleSort("category")}>
+                  Category {getSortArrow("category")}
+                </th>
+
+                <th onClick={() => handleSort("brand")}>
+                  Brand {getSortArrow("brand")}
+                </th>
+
+                <th onClick={() => handleSort("description")}>
+                  Description {getSortArrow("description")}
+                </th>
+
+                <th onClick={() => handleSort("unit")}>
+                  Unit {getSortArrow("unit")}
+                </th>
+
+                <th onClick={() => handleSort("status")}>
+                  Status {getSortArrow("status")}
+                </th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -285,12 +352,6 @@ function ManageItem() {
                           borderRadius: "5px",
                         }}
                       >
-                        {/* <button
-                          className="btns1"
-                          onClick={() => setShowStocks(true)}
-                        >
-                          <BiPackage />
-                        </button> */}
                         <button
                           className="btns1"
                           onClick={() => handleShowStock(item)}
@@ -350,7 +411,7 @@ function ManageItem() {
       {showModal && (
         <AddItem
           visible={showModal}
-          item={editItem}
+          editItem={editItem}
           onClose={handleClose}
           closeModal={closeModal}
         />
@@ -359,7 +420,7 @@ function ManageItem() {
       {showStocks && (
         <ItemPrice
           handleClose={() => setShowStocks(false)}
-          selectedItemName={selectedItemName} // Correct prop name
+          selectedItemName={selectedItemName}
         />
       )}
     </>

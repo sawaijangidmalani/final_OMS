@@ -82,4 +82,3 @@ router.delete("/deleteItemPrice/:id", async (req, res) => {
 });
 
 export { router as itempriceRouter };
-

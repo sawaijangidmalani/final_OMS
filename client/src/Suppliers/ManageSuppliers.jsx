@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import AddSuppliers from "./AddSuppliers";
-import { BiAddToQueue, BiSolidEdit, BiSearch, BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
+import {
+  BiAddToQueue,
+  BiSolidEdit,
+  BiSearch,
+  BiUpArrowAlt,
+  BiDownArrowAlt,
+} from "react-icons/bi";
 import { MdDelete } from "react-icons/md";
 import axios from "axios";
 import { Tooltip, Pagination, Modal, Popconfirm } from "antd";
@@ -15,7 +21,7 @@ function ManageSupplier() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(8);
   const [filteredSuppliers, setFilteredSuppliers] = useState([]);
-  
+
   const [sortConfig, setSortConfig] = useState({ key: "", order: "asc" });
 
   useEffect(() => {
@@ -173,8 +179,14 @@ function ManageSupplier() {
                 <th onClick={() => handleSort("phone")}>
                   Phone {getSortArrow("phone")}
                 </th>
-                <th>Area</th>
-                <th>Status</th>
+
+                <th onClick={() => handleSort("area")}>
+                  Area {getSortArrow("area")}
+                </th>
+
+                <th onClick={() => handleSort("status")}>
+                  Status {getSortArrow("status")}
+                </th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -188,7 +200,7 @@ function ManageSupplier() {
                   <td>{supplier.status}</td>
                   <td>
                     <div className="buttons-group">
-                    <Tooltip
+                      <Tooltip
                         title="Edit"
                         overlayInnerStyle={{
                           backgroundColor: "rgb(41, 10, 244)",

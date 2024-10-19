@@ -51,13 +51,15 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
 
     if (editItem) {
       setFormData(editItem);
+    } else {
+      setFormData({ ...initialData });
     }
   }, [editItem]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
-        closeModal(); // Close the modal if clicked outside
+        closeModal();
       }
     };
 
@@ -116,119 +118,100 @@ const AddItem = ({ items, setItem, editItem, closeModal }) => {
         <div className="style-model">
           <Modal ref={modalRef}>
             <form onSubmit={handleSubmit} className="customer-form">
-              <h3 className="form-heading">Add / Edit Item</h3>
-              <label htmlFor="name" className="customer-form__label">
+              <h3 className="form-heading">
+                {editItem ? "Edit Item" : "Add Item"}
+              </h3>
+              <label className="customer-form__label">
                 Item Name:
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="customer-form__input"
+                  required
+                  // disabled={!!editItem}
+                />
               </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className="customer-form__input"
-                required
-                disabled={!!editItem}
-              />
 
-              <label htmlFor="supplier" className="customer-form__label">
+              <label className="customer-form__label">
                 Supplier:
+                <select
+                  name="supplier"
+                  value={formData.supplier}
+                  onChange={handleInputChange}
+                  className="customer-form__input"
+                >
+                  {suppliers.map((supplier) => (
+                    <option key={supplier.id} value={supplier.name}>
+                      {supplier.name}
+                    </option>
+                  ))}
+                </select>
               </label>
-              <select
-                name="supplier"
-                value={formData.supplier}
-                onChange={handleInputChange}
-                className="customer-form__input"
-              >
-                {suppliers.map((supplier) => (
-                  <option key={supplier.id} value={supplier.name}>
-                    {supplier.name}
-                  </option>
-                ))}
-              </select>
 
-              <label htmlFor="category" className="customer-form__label">
+              <label className="customer-form__label">
                 Category:
+                <input
+                  type="text"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  className="customer-form__input"
+                  required
+                />
               </label>
-              <input
-                type="text"
-                name="category"
-                value={formData.category}
-                onChange={handleInputChange}
-                className="customer-form__input"
-                required
-              />
 
               <label htmlFor="brand" className="customer-form__label">
                 Brand:
+                <input
+                  type="text"
+                  name="brand"
+                  value={formData.brand}
+                  onChange={handleInputChange}
+                  className="customer-form__input"
+                  required
+                />
               </label>
-              <input
-                type="text"
-                name="brand"
-                value={formData.brand}
-                onChange={handleInputChange}
-                className="customer-form__input"
-                required
-              />
-
-              {/* <label htmlFor="quantity" className="customer-form__label">
-                Quantity:
-              </label>
-              <input
-                type="number"
-                name="quantity"
-                value={formData.quantity}
-                onChange={handleInputChange}
-                className="customer-form__input"
-              />
-
-              <label htmlFor="price" className="customer-form__label">
-                Price:
-              </label>
-              <input
-                type="number"
-                name="price"
-                value={formData.price}
-                onChange={handleInputChange}
-                className="customer-form__input"
-              /> */}
 
               <label htmlFor="description" className="customer-form__label">
                 Description:
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  className="customer-form__input"
+                />
               </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                className="customer-form__input"
-              />
 
               <label htmlFor="unit" className="customer-form__label">
                 Unit:
+                <select
+                  name="unit"
+                  value={formData.unit}
+                  onChange={handleInputChange}
+                  className="customer-form__input"
+                  required
+                >
+                  <option value="KG">KG</option>
+                  <option value="PCS">PCS</option>
+                </select>
               </label>
-              <select
-                name="unit"
-                value={formData.unit}
-                onChange={handleInputChange}
-                className="customer-form__input"
-                required
-              >
-                <option value="KG">KG</option>
-                <option value="PCS">PCS</option>
-              </select>
 
               <label htmlFor="status" className="customer-form__label">
                 Status:
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  className="customer-form__input"
+                  required
+                >
+                  <option value="selectstatus">Select Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
               </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                className="customer-form__input"
-                required
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
 
               <div className="customer-form__button-container">
                 <button type="submit" className="customer-form__button">

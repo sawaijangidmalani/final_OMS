@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { BiEdit, BiTrash } from "react-icons/bi";
 import styled from "styled-components";
 import axios from "axios";
 import "../Style/Customer.css";
@@ -19,12 +18,12 @@ function ItemPrice({ handleClose, selectedItemName }) {
   const [itemPriceData, setItemPriceData] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editItemId, setEditItemId] = useState(null);
-
   const [formData, setFormData] = useState({
     price: "",
     qty: "",
     date: "",
   });
+ 
 
   useEffect(() => {
     const fetchItemPrices = async () => {
@@ -33,6 +32,7 @@ function ItemPrice({ handleClose, selectedItemName }) {
           "http://localhost:8000/itemPrice/getItemPrices"
         );
         setItemPriceData(response.data);
+        console.log(response.data);
       } catch (error) {
         console.error("Error fetching item prices:", error);
       }
@@ -41,20 +41,20 @@ function ItemPrice({ handleClose, selectedItemName }) {
     fetchItemPrices();
   }, []);
 
+  console.log(itemPriceData);
+
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (event) => {
-    event.preventDefault(); // Prevent the default form submission behavior
-    // console.log("Submitting form data:", formData);
-
+    event.preventDefault();
     try {
       if (isEditing) {
         // Update existing item price
         const response = await axios.put(
-          `http://localhost:8000/itemPrice/updateItemPrice/${editItemId}`, // Ensure this matches the backend route
+          `http://localhost:8000/itemPrice/updateItemPrice/${editItemId}`,
           formData
         );
         setItemPriceData(
@@ -62,18 +62,17 @@ function ItemPrice({ handleClose, selectedItemName }) {
             item.id === editItemId ? response.data : item
           )
         );
-        alert("Item price updated successfully!"); // Alert for successful update
+        alert("Item price updated successfully!");
       } else {
         // Add new item price
         const response = await axios.post(
-          "http://localhost:8000/itemPrice/addItemPrice", // Ensure this matches backend route
+          "http://localhost:8000/itemPrice/addItemPrice",
           formData
         );
         setItemPriceData([...itemPriceData, response.data]);
-        alert("Item price added successfully!"); // Alert for successful addition
+        alert("Item price added successfully!");
       }
 
-      // Reset the form and state
       setFormData({ price: "", qty: "", date: "" });
       setIsEditing(false);
       setEditItemId(null);
@@ -83,7 +82,7 @@ function ItemPrice({ handleClose, selectedItemName }) {
     }
   };
 
-  const handleEdit = (item) => {
+  const handleEditItem = (item) => {
     setFormData({
       price: item.price,
       qty: item.qty,
@@ -164,7 +163,7 @@ function ItemPrice({ handleClose, selectedItemName }) {
             </label>
 
             <div className="table-responsive">
-              <p>Item Price for: {selectedItemName}</p>
+              <h2>Item Price List: {selectedItemName}</h2>
               <table className="table table-bordered table-striped table-hover shadow">
                 <thead className="table-secondary">
                   <tr>
@@ -179,9 +178,10 @@ function ItemPrice({ handleClose, selectedItemName }) {
                     <tr key={item.id}>
                       <td>{item.price}</td>
                       <td>{item.qty}</td>
-                      <td>{item.date}</td>
+                      <td>{new Date(item.date).toLocaleDateString()}</td>
+
                       <td>
-                        <div className="button-group">
+                        <div className="buttons-group">
                           <Tooltip
                             title="Edit"
                             overlayInnerStyle={{

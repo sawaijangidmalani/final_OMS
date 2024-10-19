@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import SalesOrder from "./SalesOrder";
 import { BiEdit, BiTrash } from "react-icons/bi";
-import EditCustomerPO from '../Sales-Order/EditCustomePO'
+import EditCustomerPO from "../Sales-Order/EditCustomePO";
 import axios from "axios";
+import "../Style/Customer.css";
 
 const initialCustomers = [
   {
@@ -48,25 +49,6 @@ const StyledModel = styled.div`
   align-items: center;
 `;
 
-const StyledDiv = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
-
-const StyledSelect = styled.select`
-  width: 200px;
-  height: 40px;
-  background-color: white;
-  color: #333;
-  padding-left: 10px;
-  font-size: 16px;
-  border: none;
-  border-radius: 5px;
-  margin: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-`;
-
 const StyledLabel = styled.label`
   font-size: 16px;
   margin: 10px;
@@ -85,66 +67,10 @@ const StyledInput = styled.input`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
-const ButtonContainer = styled.div`
-  display: flex;
-  justify-content: space-around;
-  padding: 20px;
-  gap: 15px;
-`;
 
-const StyledButton = styled.button`
-  font-size: 16px;
-  color: #ffffff;
-  background-color: #4e647b;
-  border: none;
-  padding: 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
 
-  &:hover {
-    background-color: #0056b3;
-  }
 
-  &:focus {
-    outline: none;
-  }
-`;
 
-const DropdownContainer = styled.div`
-  position: relative;
-`;
-
-const DropdownButton = styled.button`
-  width: 200px;
-  height: 40px;
-  background-color: white;
-  color: #333;
-  padding-left: 10px;
-  font-size: 16px;
-  border: none;
-  border-radius: 5px;
-  margin: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  text-align: left;
-  cursor: pointer;
-
-  &:focus {
-    outline: none;
-  }
-`;
-
-const DropdownOptions = styled.div`
-  position: absolute;
-  width: 200px;
-  max-height: 150px;
-  overflow-y: auto;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 1;
-`;
 
 const Option = styled.div`
   padding: 10px;
@@ -166,7 +92,6 @@ function Sales() {
   const [selectedCustomer, setSelectedCustomer] = useState(customers[0]?.name);
   const [selectedCustomerPO, setSelectedCustomerPO] = useState(customerPOs[0]);
   const [salesData, setSalesData] = useState([]);
-
   const [dropdownOpenCustomerPO, setDropdownOpenCustomerPO] = useState(false);
   const [selectedSaleIndex, setSelectedSaleIndex] = useState(null);
   const [newCustomer, setNewCustomer] = useState({
@@ -185,26 +110,28 @@ function Sales() {
       try {
         // Retrieve data from local storage
         const storedSalesData = localStorage.getItem("salesData");
-  
+
         // If there's stored data, set it as initial state
         if (storedSalesData) {
           setSalesData(JSON.parse(storedSalesData));
         }
-  
+
         // Fetch new data from the API
-        const response = await axios.get("https://final-oms.onrender.com/po/getpo");
+        const response = await axios.get(
+          "https://final-oms.onrender.com/po/getpo"
+        );
         const fetchedData = response.data;
-        
+
         // Update state and local storage with the fetched data
         setSalesData(fetchedData);
         localStorage.setItem("salesData", JSON.stringify(fetchedData));
       } catch (error) {
-        console.error('Error fetching sales data:', error);
+        console.error("Error fetching sales data:", error);
       }
     };
-  
+
     fetchData();
-  }, []); 
+  }, []);
   const handleDateChange = (event) => {
     setSelectedDate(event.target.value);
   };
@@ -217,8 +144,7 @@ function Sales() {
     setSelectedCustomerPO(event.target.value);
   };
 
-  const handleSearch = () => {
-  };
+  const handleSearch = () => {};
 
   const handleSaleOrder = () => {
     setSelectedSaleIndex(null);
@@ -243,7 +169,6 @@ function Sales() {
   };
 
   const handleDelete = (index) => {
-    
     const updatedSalesData = [...salesData];
     updatedSalesData.splice(index, 1);
     setSalesData(updatedSalesData);
@@ -294,115 +219,142 @@ function Sales() {
 
   return (
     <>
-      <h1>Manage Customer PO</h1>
-      <StyledDiv>
-        <DropdownContainer>
-          <DropdownButton onClick={toggleDropdown}>
-            {selectedCustomer || "Customer Name"}
-          </DropdownButton>
-          {dropdownOpen && (
-            <DropdownOptions>
-              {customers.map((customer) => (
-                <Option key={customer.id} onClick={() => handleOptionClick(customer.name)}>
-                  {customer.name}
-                </Option>
-              ))}
-            </DropdownOptions>
-          )}
-        </DropdownContainer>
-        <StyledLabel htmlFor="orderDate">Order Date:</StyledLabel>
-        <StyledInput
-          type="date"
-          id="orderDate"
-          value={selectedDate}
-          onChange={handleDateChange}
-        />
-        <DropdownContainer>
-          <DropdownButton onClick={toggleDropdownCustomerPO}>
-            {selectedCustomerPO || "Customer PO"}
-          </DropdownButton>
-          {dropdownOpenCustomerPO && (
-            <DropdownOptions>
-              {customerPOs.map((customerPO, index) => (
-                <Option
-                  key={index}
-                  onClick={() => handleCustomerPOSelect(customerPO)}
-                >
-                  {customerPO}
-                </Option>
-              ))}
-            </DropdownOptions>
-          )}
-        </DropdownContainer>
-        <ButtonContainer>
-          <StyledButton onClick={handleSearch}>Search</StyledButton>
-          <StyledButton onClick={handleSaleOrder}>Add Customer PO</StyledButton>
-        </ButtonContainer>
-      </StyledDiv>
-      <div>
-        <h3>Customer PO List:</h3>
-        <table className="table table-bordered table-striped">
-          <thead className="table-secondary">
-            <tr>
-              <th>Customer Name</th>
-              <th>Customer PO</th>
-              <th>Date</th>
-              <th>Total</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-  {Array.isArray(salesData) && salesData.map((sale, index) => (
-    <React.Fragment key={index}>
-      {Array.isArray(sale.item) && sale.item.map((item, itemIndex) => (
-        <tr key={`${index}-${itemIndex}`}>
-          <td>{itemIndex === 0 ? sale.customer : ''}</td>
-          <td>{itemIndex === 0 ? sale.po : ''}</td>
-          <td>{itemIndex === 0 ? sale.date : ''}</td>
-          <td>{item.price}</td>
-          <td>{itemIndex === 0 ? sale.status : ''}</td>
-          <td>
-            {itemIndex === 0 && (
-              <div className="buttons-group">
-                <button onClick={() => handleEdit(index)} className="btns">
-                  <BiEdit />
-                </button>
-                <button onClick={() => handleDelete(index)} className="btns">
-                  <BiTrash />
-                </button>
-              </div>
-            )}
-          </td>
-        </tr>
-      ))}
-    </React.Fragment>
-  ))}
-</tbody>
+      <div className="container">
+        <h1>Manage Customer PO</h1>
+        <div className="StyledDiv">
+          <div className="LeftContainer">
+            <div className="dropdowncontainer">
+              <button className="dropdownbutton" onClick={toggleDropdown}>
+                {selectedCustomer || "Customer Name"}
+              </button>
 
+              {dropdownOpen && (
+                <div className="dropdownoption">
+                  {customers.map((customer) => (
+                    <div
+                    className="option"
+                      key={customer.id}
+                      onClick={() => handleOptionClick(customer.name)}
+                    >
+                      {customer.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-        </table>
+            <StyledLabel htmlFor="orderDate">Order Date:</StyledLabel>
+            <StyledInput
+              type="date"
+              id="orderDate"
+              value={selectedDate}
+              onChange={handleDateChange}
+            />
+
+            <div className="dropdowncontainer">
+              <button
+                className="dropdownbutton"
+                onClick={toggleDropdownCustomerPO}
+              >
+                {selectedCustomerPO || "Customer PO"}
+              </button>
+              {dropdownOpenCustomerPO && (
+                <div className="dropdownoption">
+                  {customerPOs.map((customerPO, index) => (
+                    <div
+                    className="option"
+                      key={index}
+                      onClick={() => handleCustomerPOSelect(customerPO)}
+                    >
+                      {customerPO}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="RightContainer">
+              <button className="StyledButtonSearch" onClick={handleSearch}>
+                Search
+              </button>
+              <button className="StyledButtonAdd" onClick={handleSaleOrder}>
+                Add Cus. PO
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="table-responsive">
+          <h3>Customer PO List:</h3>
+          <table className="table table-bordered table-striped table-hover shadow">
+            <thead className="table-secondary">
+              <tr>
+                <th>Customer Name</th>
+                <th>Customer PO</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.isArray(salesData) &&
+                salesData.map((sale, index) => (
+                  <React.Fragment key={index}>
+                    {Array.isArray(sale.item) &&
+                      sale.item.map((item, itemIndex) => (
+                        <tr key={`${index}-${itemIndex}`}>
+                          <td>{itemIndex === 0 ? sale.customer : ""}</td>
+                          <td>{itemIndex === 0 ? sale.po : ""}</td>
+                          <td>{itemIndex === 0 ? sale.date : ""}</td>
+                          <td>{item.price}</td>
+                          <td>{itemIndex === 0 ? sale.status : ""}</td>
+                          <td>
+                            {itemIndex === 0 && (
+                              <div className="buttons-group">
+                                <button
+                                  onClick={() => handleEdit(index)}
+                                  className="btns1"
+                                >
+                                  <BiEdit />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(index)}
+                                  className="btns2"
+                                >
+                                  <BiTrash />
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                  </React.Fragment>
+                ))}
+            </tbody>
+          </table>
+        </div>
+        {showModal && (
+          <StyledModel>
+            <Modal>
+              {selectedSaleIndex !== null ? (
+                <EditCustomerPO
+                  onSalesData={handleSalesData}
+                  saleData={salesData[selectedSaleIndex]}
+                  customers={customers}
+                />
+              ) : (
+                <SalesOrder
+                  onSalesData={handleSalesData}
+                  addCustomer={addCustomer}
+                  addInvoice={addInvoice}
+                  onClose={handleClose}
+                />
+              )}
+            </Modal>
+          </StyledModel>
+        )}
       </div>
-      {showModal && (
-        <StyledModel>
-          <Modal>
-            {selectedSaleIndex !== null ? (
-              <EditCustomerPO
-                onSalesData={handleSalesData}
-                saleData={salesData[selectedSaleIndex]}
-                customers={customers}
-              />
-            ) : (
-              <SalesOrder
-                onSalesData={handleSalesData}
-                addCustomer={addCustomer}
-                addInvoice={addInvoice}
-                onClose={handleClose}
-              />
-            )}
-          </Modal>
-        </StyledModel>
-      )}
     </>
   );
 }

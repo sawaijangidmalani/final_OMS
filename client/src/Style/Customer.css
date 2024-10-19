@@ -115,7 +115,6 @@ h3 {
   text-align: left;
   font-weight: bold;
   font-size: 18px;
-  /* color: #007bff!important; */
 }
 
 .table td {
@@ -217,7 +216,7 @@ h3 {
 }
 
 .dropdownbutton {
-  width: 200px;
+  width: 140px;
   height: 40px;
   background-color: white;
   color: #333;
@@ -244,7 +243,7 @@ h3 {
 
 .dropdownoption{
   position: absolute;
-  width: 200px;
+  width: 140px;
   max-height: 150px;
   overflow-y: auto;
   background-color: white;
