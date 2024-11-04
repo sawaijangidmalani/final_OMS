@@ -136,7 +136,7 @@
 
 //   useEffect(() => {
 //     axios
-//       .get("https://final-oms.onrender.com/po/getpo")
+//       .get("http://localhost:8000/po/getpo")
 //       .then((response) => {
 //         setPurchaseData(response.data);
 //       })
@@ -194,7 +194,7 @@
 //   const handleDelete = async (status, name) => {
 //     try {
 //       const response = await axios.delete(
-//         "https://final-oms.onrender.com/po/deletepo",
+//         "http://localhost:8000/po/deletepo",
 //         {
 //           data: { name, status },
 //         }
@@ -300,7 +300,7 @@
 //                         okText="Delete"
 //                         >
 //                         <button className="btns2">
-                                               
+
 //                           <BiTrash />
 //                         </button>
 //                         </Popconfirm>
@@ -347,13 +347,13 @@
 
 // export default ManagePurchase;
 
-
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import PurchaseOrder from "./PurchaseOrder";
 import EditPurchaseOrder from "./EditPurchaseOrder";
 import { BiEdit, BiTrash } from "react-icons/bi";
 import axios from "axios";
+import { BiSearch, BiAddToQueue } from "react-icons/bi";
 
 const initialSuppliers = [
   {
@@ -378,12 +378,12 @@ const initialPurchaseOrders = ["PO 01", "PO 02", "PO 03"];
 const initialCustomerPOs = ["CPO 001", "CPO 002", "CPO 003"];
 
 const Modal = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: white;
-  padding: 20px;
+   position: fixed;
+  z-index: 100;
+  top: 5%;
+  left: 35%;
+  border-radius: 20px;
+  
 `;
 
 const StyledModel = styled.div`
@@ -396,113 +396,6 @@ const StyledModel = styled.div`
   backdrop-filter: blur(2px);
 `;
 
-const StyledDiv = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
-
-const StyledSelect = styled.select`
-  width: 200px;
-  height: 40px;
-  background-color: white;
-  color: #333;
-  padding-left: 10px;
-  font-size: 16px;
-  border: none;
-  border-radius: 5px;
-  margin: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-`;
-
-const StyledLabel = styled.label`
-  font-size: 16px;
-  margin: 10px;
-`;
-
-const StyledInput = styled.input`
-  width: 200px;
-  height: 40px;
-  background-color: white;
-  color: #333;
-  padding-left: 10px;
-  font-size: 16px;
-  border: none;
-  border-radius: 5px;
-  margin: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-`;
-
-const ButtonContainer = styled.div`
-  display: flex;
-  justify-content: space-around;
-  padding: 20px;
-  gap: 15px;
-`;
-
-const StyledButton = styled.button`
-  font-size: 16px;
-  color: #ffffff;
-  background-color: #4e647b;
-  border: none;
-  padding: 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-
-  &:hover {
-    background-color: #0056b3;
-  }
-
-  &:focus {
-    outline: none;
-  }
-`;
-
-const DropdownContainer = styled.div`
-  position: relative;
-`;
-
-const DropdownButton = styled.button`
-  width: 200px;
-  height: 40px;
-  background-color: white;
-  color: #333;
-  padding-left: 10px;
-  font-size: 16px;
-  border: none;
-  border-radius: 5px;
-  margin: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  text-align: left;
-  cursor: pointer;
-
-  &:focus {
-    outline: none;
-  }
-`;
-
-const DropdownOptions = styled.div`
-  position: absolute;
-  width: 200px;
-  max-height: 150px;
-  overflow-y: auto;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 1;
-`;
-
-const Option = styled.div`
-  padding: 10px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #f0f0f0;
-  }
-`;
-
 function ManagePurchase() {
   const [suppliers, setSuppliers] = useState(initialSuppliers);
   const [purchaseOrders] = useState(initialPurchaseOrders);
@@ -513,46 +406,49 @@ function ManagePurchase() {
   const [selectedPurchaseIndex, setSelectedPurchaseIndex] = useState(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [selectedPurchaseData, setSelectedPurchaseData] = useState(null);
-
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [dropdownOpenSupplier, setDropdownOpenSupplier] = useState(false);
-  const [dropdownOpenPurchaseOrder, setDropdownOpenPurchaseOrder] = useState(false);
+  const [dropdownOpenPurchaseOrder, setDropdownOpenPurchaseOrder] =
+    useState(false);
   const [dropdownOpenCustomerPO, setDropdownOpenCustomerPO] = useState(false);
 
   const toggleDropdownSupplier = () => {
     setDropdownOpenSupplier(!dropdownOpenSupplier);
   };
-  
+
   const handleSupplierSelect = (supplier) => {
     setSelectedSupplier(supplier);
     setDropdownOpenSupplier(false);
   };
-  
+
   const toggleDropdownPurchaseOrder = () => {
     setDropdownOpenPurchaseOrder(!dropdownOpenPurchaseOrder);
   };
-  
+
   const handlePurchaseOrderSelect = (purchaseOrder) => {
     setSelectedPurchaseOrder(purchaseOrder);
     setDropdownOpenPurchaseOrder(false);
   };
-  
+
   const toggleDropdownCustomerPO = () => {
     setDropdownOpenCustomerPO(!dropdownOpenCustomerPO);
   };
-  
+
   const handleCustomerPOSelect = (customerPO) => {
     setSelectedCustomerPO(customerPO);
     setDropdownOpenCustomerPO(false);
   };
 
   useEffect(() => {
-    axios.get("http://localhost:8000/po/getpo")
-    .then(response => {
-        setPurchaseData(response.data);  
-    })
-    .catch(error => {
-        console.error('There was an error fetching the data!', error);
-    });
+    axios
+      .get("http://localhost:8000/po/getpo")
+      .then((response) => {
+        setPurchaseData(response.data);
+      })
+      .catch((error) => {
+        console.error("There was an error fetching the data!", error);
+      });
     const storedPurchaseData = localStorage.getItem("purchaseData");
     if (storedPurchaseData) {
       setPurchaseData(JSON.parse(storedPurchaseData));
@@ -567,8 +463,7 @@ function ManagePurchase() {
     setSelectedDate(event.target.value);
   };
 
-  const handleSearch = () => {
-  };
+  const handleSearch = () => {};
 
   const handlePurchaseOrder = () => {
     setShowModal(true);
@@ -595,178 +490,211 @@ function ManagePurchase() {
 
   const handleDelete = async (status, name) => {
     try {
-        const response = await axios.delete("http://localhost:8000/po/deletepo", {
-            data: { name, status }
-        });
-        console.log('Success:', response.data);
+      const response = await axios.delete("http://localhost:8000/po/deletepo", {
+        data: { name, status },
+      });
+      console.log("Success:", response.data);
     } catch (error) {
-        console.error('Error deleting purchase order:', error.response ? error.response.data : error.message);
+      console.error(
+        "Error deleting purchase order:",
+        error.response ? error.response.data : error.message
+      );
     }
-};
+  };
   const handleCancelEdit = () => {
     setEditModalVisible(false);
     setSelectedPurchaseIndex(null);
     setSelectedPurchaseData(null);
   };
 
+  const handleStartDateChange = (e) => setStartDate(e.target.value);
+  const handleEndDateChange = (e) => setEndDate(e.target.value);
+
   return (
     <>
-      <h1>Manage Purchases</h1>
-      <StyledDiv>
-        <DropdownContainer>
-          
-          <DropdownButton onClick={toggleDropdownSupplier}>
-            Customer
-          </DropdownButton>
-          {dropdownOpenSupplier && (
-            <DropdownOptions>
-              {suppliers.map((supplier) => (
-                <Option key={supplier.id} onClick={() => handleSupplierSelect(supplier)}>
-                  {supplier.name}
-                </Option>
-              ))}
-            </DropdownOptions>
-          )}
-        </DropdownContainer>
-        <DropdownContainer>
-          
-          <DropdownButton onClick={toggleDropdownPurchaseOrder}>
-             Purchase Order
-          </DropdownButton>
-          {dropdownOpenPurchaseOrder && (
-            <DropdownOptions>
-              {purchaseOrders.map((po) => (
-                <Option key={po} onClick={() => handlePurchaseOrderSelect(po)}>
-                  {po}
-                </Option>
-              ))}
-            </DropdownOptions>
-          )}
-        </DropdownContainer>
-        <DropdownContainer>
-         
-          <DropdownButton onClick={toggleDropdownCustomerPO}>
-             Customer PO
-          </DropdownButton>
-          {dropdownOpenCustomerPO && (
-            <DropdownOptions>
-              {customerPOs.map((cpo) => (
-                <Option key={cpo} onClick={() => handleCustomerPOSelect(cpo)}>
-                  {cpo}
-                </Option>
-              ))}
-            </DropdownOptions>
-          )}
-        </DropdownContainer>
-        <StyledLabel htmlFor="orderDate">Order Date:</StyledLabel>
-        <StyledInput
-          type="date"
-          id="orderDate"
-          value={selectedDate}
-          onChange={handleDateChange}
-        />
-        <ButtonContainer>
-          <StyledButton onClick={handleSearch}>Search</StyledButton>
-          <StyledButton onClick={handlePurchaseOrder}>
-            Add Purchase Order
-          </StyledButton>
-        </ButtonContainer>
-      </StyledDiv>
-      <div>
-        <h3>Purchase List:</h3>
-        <table className="table table-bordered table-striped">
-          <thead className="table-secondary">
-            <tr>
-              <th>Customer Name</th>
-              <th>Purchase Order </th>
-              <th>Customer PO</th>
-              <th>Date</th>
-              <th>Total Purchase</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-           {/* <tbody>
-          {purchaseData.map((purchase, index) => (
-            <tr key={index}>
-              <td>{purchase.customer}</td>
-              <td>{purchase.po}</td>
-              <td>{purchase.co}</td>
-              <td>{purchase.date}</td>
-              <td>{purchase.item[0].price}</td> 
-              <td>{purchase.status}</td>
-              <td>
-                <div className="buttons-group">
-                  <button onClick={() => handleEdit(index)} className="btns">
-                    <BiEdit />
-                  </button>
-                  <button onClick={() => handleDelete(purchase.ana,purchase.customer)} className="btns">
-                    <BiTrash />
-                  </button>
+      <div className="container">
+        <h1>Manage Purchases</h1>
+        <div className="StyledDiv">
+          <div className="LeftContainer">
+            <div className="dropdowncontainer">
+              <button className="StyledIn" onClick={toggleDropdownSupplier}>
+                Customer
+              </button>
+              {dropdownOpenSupplier && (
+                <div className="dropdownoption">
+                  {suppliers.map((supplier) => (
+                    <div
+                      key={supplier.id}
+                      className="option"
+                      onClick={() => handleSupplierSelect(supplier)}
+                    >
+                      {supplier.name}
+                    </div>
+                  ))}
                 </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>  */}
-
-<tbody>
-  {purchaseData.map((purchase, index) => (
-    <tr key={index}>
-      <td>{purchase.customer}</td>
-      <td>{purchase.po}</td>
-      <td>{purchase.co}</td>
-      <td>{purchase.date}</td>
-      <td>{purchase.item && purchase.item[0] ? purchase.item[0].price : "N/A"}</td> 
-      <td>{purchase.status}</td>
-      <td>
-        <div className="button-group">
-          <button onClick={() => handleEdit(index)} className="btns">
-            <BiEdit />
-          </button>
-          <button onClick={() => handleDelete(purchase.ana,purchase.customer)} className="btns">
-            <BiTrash />
-          </button>
+              )}
+            </div>
+            <div className="dropdowncontainer">
+              <button
+                className="StyledIn"
+                onClick={toggleDropdownPurchaseOrder}
+              >
+                Purchase Order
+              </button>
+              {dropdownOpenPurchaseOrder && (
+                <div className="dropdownoption">
+                  {purchaseOrders.map((po) => (
+                    <div
+                      className="option"
+                      key={po}
+                      onClick={() => handlePurchaseOrderSelect(po)}
+                    >
+                      {po}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="dropdowncontainer">
+              <button className="StyledIn" onClick={toggleDropdownCustomerPO}>
+                Customer PO
+              </button>
+              {dropdownOpenCustomerPO && (
+                <div className="dropdownoption">
+                  {customerPOs.map((cpo) => (
+                    <div
+                      className="option"
+                      key={cpo}
+                      onClick={() => handleCustomerPOSelect(cpo)}
+                    >
+                      {cpo}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            Start Date:
+            <input
+              type="date"
+              value={startDate}
+              onChange={handleStartDateChange}
+              className="StyledIn"
+            />
+            End Date:
+            <input
+              type="date"
+              value={endDate}
+              onChange={handleEndDateChange}
+              className="StyledIn"
+            />
+            <button
+              className="StyledButtonSearch"
+              onClick={handleSearch}
+              style={{ marginLeft: "10px" }}
+            >
+              <BiSearch />
+              Search
+            </button>
+          </div>
+          <div className="RightContainer">
+                     <button
+              className="StyledButtonAdd"
+              onClick={handlePurchaseOrder}
+            >
+              <BiAddToQueue /> Add Pur. Order
+            </button>
+          </div>
         </div>
-      </td>
-    </tr>
-  ))}
-</tbody>
-
-
-
-        </table>
+        <div>
+          <h3>Purchase List</h3>
+          <table className="table table-bordered table-striped">
+            <thead className="table-secondary">
+              <tr>
+                <th>Customer Name</th>
+                <th>Purchase Order </th>
+                <th>Customer PO</th>
+                <th>Date</th>
+                <th>Total Purchase</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {purchaseData.map((purchase, index) => (
+                <tr key={index}>
+                  <td>{purchase.customer}</td>
+                  <td>{purchase.po}</td>
+                  <td>{purchase.co}</td>
+                  <td>{purchase.date}</td>
+                  <td>
+                    {purchase.item && purchase.item[0]
+                      ? purchase.item[0].price
+                      : "N/A"}
+                  </td>
+                  <td>{purchase.status}</td>
+                  <td>
+                    <div className="buttons-group">
+                    <Tooltip
+                      title="Edit"
+                      overlayInnerStyle={{
+                        backgroundColor: "rgb(41, 10, 244)",
+                        color: "white",
+                        borderRadius: "5px",
+                      }}
+                    >
+                      <button
+                        onClick={() => handleEdit(index)}
+                        className="btns1"
+                      >
+                        <BiEdit />
+                      </button>
+                      </Tooltip>
+                      <button
+                        onClick={() =>
+                          handleDelete(purchase.ana, purchase.customer)
+                        }
+                        className="btns2"
+                      >
+                        <BiTrash />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {showModal && (
+          <StyledModel>
+            <Modal>
+              <PurchaseOrder
+                onPurchaseData={handlePurchaseData}
+                purchaseData={
+                  selectedPurchaseIndex !== null
+                    ? purchaseData[selectedPurchaseIndex]
+                    : null
+                }
+              />
+            </Modal>
+          </StyledModel>
+        )}
+        {editModalVisible && selectedPurchaseData && (
+          <StyledModel>
+            <Modal>
+              <EditPurchaseOrder
+                suppliers={suppliers}
+                purchaseOrders={purchaseOrders}
+                customerPOs={customerPOs}
+                initialData={selectedPurchaseData}
+                onSave={handlePurchaseData}
+                onCancel={handleCancelEdit}
+              />
+            </Modal>
+          </StyledModel>
+        )}
       </div>
-      {showModal && (
-        <StyledModel>
-          <Modal>
-            <PurchaseOrder
-              onPurchaseData={handlePurchaseData}
-              purchaseData={
-                selectedPurchaseIndex !== null
-                  ? purchaseData[selectedPurchaseIndex]
-                  : null
-              }
-            />
-          </Modal>
-        </StyledModel>
-      )}
-      {editModalVisible && selectedPurchaseData && (
-        <StyledModel>
-          <Modal>
-            <EditPurchaseOrder
-              suppliers={suppliers}
-              purchaseOrders={purchaseOrders}
-              customerPOs={customerPOs}
-              initialData={selectedPurchaseData}
-              onSave={handlePurchaseData}
-              onCancel={handleCancelEdit}
-            />
-          </Modal>
-        </StyledModel>
-      )}
     </>
   );
 }
 
 export default ManagePurchase;
-

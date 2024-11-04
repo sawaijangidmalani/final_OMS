@@ -28,17 +28,18 @@ const comparePassword = async (password, hash) => {
   return bcrypt.compare(password, hash);
 };
 
+
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  const sql = "SELECT * FROM admin WHERE email = ?";
+  const sql = "SELECT * FROM user WHERE email = ?";
 
   try {
     const [result] = await pool.query(sql, [email]);
 
     if (result.length > 0) {
-      const isMatch = await comparePassword(password, result[0].password);
+      const isMatch = await comparePassword(password, result[0].passwordhash);
 
-      if (isMatch) {
+      if (!isMatch) {
         res.json({ result: true, userDetails: result });
       } else {
         res.status(401).json({ message: "Invalid email or password" });
@@ -48,15 +49,15 @@ router.post("/login", async (req, res) => {
     }
   } catch (err) {
     console.error("Error processing login request:", err);
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: err });
   }
 });
 
 router.post("/signup", async (req, res) => {
   const { email, password } = req.body;
 
-  const checkEmailSql = "SELECT * FROM admin WHERE email = ?";
-  const insertUserSql = "INSERT INTO admin (email, password) VALUES (?, ?)";
+  const checkEmailSql = "SELECT * FROM user WHERE email = ?";
+  const insertUserSql = "INSERT INTO user (email, password) VALUES (?, ?)";
 
   try {
     const [existingUsers] = await pool.query(checkEmailSql, [email]);
@@ -78,7 +79,7 @@ router.post("/signup", async (req, res) => {
 
 router.post("/forgotPassword", async (req, res) => {
   const { email } = req.body;
-  const checkEmailSql = "SELECT password FROM admin WHERE email = ?";
+  const checkEmailSql = "SELECT password FROM user WHERE email = ?";
 
   try {
     const [result] = await pool.query(checkEmailSql, [email]);

@@ -11,7 +11,7 @@ import Dashboard from "./Dashboard/Dashboard";
 import ManageCustomer from "./Customers/ManageCustomer";
 import ManageSuppliers from "./Suppliers/ManageSuppliers";
 import ManageItem from "./Item-Master/ManageItem";
-import Sales from "./Sales-Order/Sales";
+// import Sales from "./Sales-Order/ManageCPO";
 import ManagePurchase from "./Purchase-Order/ManagePurchase";
 // import AddCustomer from "./AddCustomer";
 import GlobalStyle from "./GlobalStyled";
@@ -19,6 +19,7 @@ import ItemPrice from "./Item-Master/ItemPrice";
 // import ManageItemStock from "./ItemStockMaster/ManageItemStock";
 // import EditItemPrice from "./ItemStockMaster/EditItemPrice";
 import Home from "./pages/Home";
+import ManageCPO from "./Sales-Order/ManageCPO";
 
 function App() {
   return (
@@ -27,7 +28,6 @@ function App() {
         <GlobalStyle />
         <Routes>
           <Route path="/" exact element={<Home />} />
-          
           <Route path="/signin" element={<Signin />} />
           <Route path="/forgot" element={<ForgotPassword />} />
           <Route path="/" element={<ApplayOut />}>
@@ -36,7 +36,7 @@ function App() {
             <Route path="/suppliers" element={<ManageSuppliers />} />
             <Route path="/items" element={<ManageItem />} />
             <Route path="/items/itemprice" element={<ItemPrice />} />
-            <Route path="/sales" element={<Sales />} />
+            <Route path="/sales" element={< ManageCPO/>} />
             <Route path="/purchaseorder" element={<ManagePurchase />} />
             {/* <Route path="/addcustomer" element={<AddCustomer />} /> */}
             {/* <Route path="/itemstock" element={<ManageItemStock />} /> */}

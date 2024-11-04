@@ -8,57 +8,22 @@ const sendErrorResponse = (res, statusCode, message, details = null) => {
   res.status(statusCode).json({ error: true, message, details });
 };
 
-// Add item
-router.post("/insertItems", async (req, res) => {
-  const {
-    name,
-    supplier,
-    category,
-    brand,
-    description,
-    unit,
-    status,
-    quantity,
-    price,
-  } = req.body;
-
-  if (
-    !name ||
-    !supplier ||
-    !category ||
-    !brand ||
-    !description ||
-    !unit ||
-    !status
-  ) {
-    // return sendErrorResponse(res, 400, "Please provide all required fields");
-  }
-
-  const query = `
-    INSERT INTO item_master (name, supplier, category, brand, description, unit, status, price, quantity)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-  const values = [
-    name,
-    supplier,
-    category,
-    brand,
-    description,
-    unit,
-    status,
-    price,
-    quantity,
-  ];
-
+router.get("/getItemUnits", async (req, res) => {
   try {
-    const [results] = await pool.query(query, values);
-    res.status(201).json({
-      error: false,
-      message: "Item added successfully",
-      itemId: results.insertId,
-    });
+    const [units] = await pool.query("SELECT * FROM ItemUnits");
+    res.json(units);
   } catch (error) {
-    sendErrorResponse(res, 500, "Database query failed", error);
+    res.status(500).json({ error: "Failed to fetch item units" });
+  }
+});
+
+// Get supplier data
+router.get("/supplier/getSupplierData", async (req, res) => {
+  try {
+    const suppliers = await SupplierModel.findAll();
+    res.json(suppliers);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch suppliers" });
   }
 });
 
@@ -67,10 +32,20 @@ router.get("/getItems", async (req, res) => {
   const offset = (page - 1) * limit;
 
   const query = `
-    SELECT * FROM item_master
+    SELECT 
+      i.ItemID, i.Name, i.Category, i.Brand, 
+      i.Status, i.Description, 
+      u.UnitName AS UnitName,
+      i.ItemUnitID,
+      s.Name AS SupplierName,
+      i.SupplierID
+    FROM items i
+    JOIN itemunits u ON i.ItemUnitID = u.ItemUnitID
+    JOIN suppliers s ON i.SupplierID = s.SupplierID
     LIMIT ? OFFSET ?;
   `;
-  const countQuery = "SELECT COUNT(*) as totalItems FROM item_master;";
+
+  const countQuery = "SELECT COUNT(*) as totalItems FROM items;";
 
   try {
     const [data] = await pool.query(query, [parseInt(limit), parseInt(offset)]);
@@ -90,78 +65,143 @@ router.get("/getItems", async (req, res) => {
       },
     });
   } catch (error) {
-    sendErrorResponse(res, 500, "Database query failed", error);
+    console.error("Database query failed:", error);
+    res.status(500).json({
+      error: true,
+      message: "Database query failed",
+      details: error.message,
+    });
   }
 });
 
-// Update item
-router.put("/updateItems", async (req, res) => {
-  const { name, supplier, category, brand, description, unit, status } =
-    req.body;
+// Add new item
+router.post("/add_items", async (req, res) => {
+  const {
+    ProviderID,
+    SupplierID,
+    Name,
+    Category,
+    Brand,
+    Status,
+    Description,
+    ItemUnitID,
+  } = req.body;
 
-  if (
-    !name ||
-    !supplier ||
-    !category ||
-    !brand ||
-    !description ||
-    !unit ||
-    !status
-  ) {
-    // return sendErrorResponse(res, 400, "Please provide all required fields");
+  if (!SupplierID || !Name || !Category || !Brand || !Status || !ItemUnitID) {
+    return res
+      .status(400)
+      .json({ error: true, message: "All fields are required." });
   }
 
-  const query = `
-    UPDATE item_master
-    SET supplier = ?, category = ?, brand = ?, description = ?, unit = ?, status = ?
-    WHERE name = ?
-  `;
-  const values = [supplier, category, brand, description, unit, status, name];
+  const sql = `
+  INSERT INTO items 
+  (ProviderID, SupplierID, Name, Category, Brand, Status, Description, ItemUnitID) 
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+`;
+
+  const values = [
+    ProviderID || 1,
+    SupplierID,
+    Name,
+    Category,
+    Brand,
+    Status,
+    Description,
+    ItemUnitID,
+  ];
 
   try {
-    const [results] = await pool.query(query, values);
-
-    if (results.affectedRows === 0) {
-      return sendErrorResponse(res, 404, "Item not found");
-    }
+    const [result] = await pool.query(sql, values);
+    res.status(201).json({ added: true, data: req.body });
+  } catch (err) {
+    console.error("Error inserting data:", err);
     res
-      .status(200)
-      .json({ error: false, message: "Item updated successfully" });
-  } catch (error) {
-    sendErrorResponse(res, 500, "Database query failed", error);
+      .status(500)
+      .json({ error: true, message: "Database error", details: err });
   }
 });
 
 
-// Delete item
-router.delete("/deleteItems", async (req, res) => {
-  const { name } = req.body;
+router.post("/updateItems", async (req, res) => {
+  const {
+    SupplierID,
+    Name,
+    Category,
+    Brand,
+    Status,
+    Description,
+    ItemUnitID,
+    ItemID, 
+  } = req.body;
 
-  if (!name) {
-    return res.status(400).send({
+ 
+  const sql = `
+    UPDATE Items
+    SET SupplierID = ?, Name = ?, Category = ?, Brand = ?, Status = ?, Description = ?, ItemUnitID = ?
+    WHERE ItemID = ?; 
+  `;
+
+  try {
+    const [result] = await pool.query(sql, [
+      SupplierID,
+      Name,
+      Category,
+      Brand,
+      Status,
+      Description,
+      ItemUnitID,
+      ItemID, 
+    ]);
+    
+  
+    res.json({
+      status: result.affectedRows > 0,
+      message:
+        result.affectedRows > 0
+          ? "Item updated successfully"
+          : "Item not found",
+    });
+  } catch (err) {
+    console.error("Error updating Item:", err.stack);
+    res.status(500).json({ status: false, message: "Error updating Item" });
+  }
+});
+
+
+router.delete("/deleteItems", async (req, res) => {
+  const { ItemID } = req.body;
+
+  if (!ItemID) {
+    return res.status(400).json({
       error: true,
-      message: "Please provide the name of the item to delete",
+      message: "ItemID is required",
     });
   }
 
-  const query = "DELETE FROM item_master WHERE name = ?";
+  const query = "DELETE FROM items WHERE ItemID = ?";
 
   try {
-    const [results] = await pool.query(query, [name]);
-    if (results.affectedRows === 0) {
-      return res.status(404).send({ error: true, message: "Item not found" });
+    const [result] = await pool.query(query, [ItemID]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        error: true,
+        message: "Item not found",
+      });
     }
 
-    res
-      .status(200)
-      .send({ error: false, message: "Item deleted successfully" });
+    res.status(200).json({
+      error: false,
+      message: "Item deleted successfully",
+    });
   } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .send({ error: true, message: "Database query failed", details: error });
+    console.error("Error deleting item:", error);
+    res.status(500).json({
+      error: true,
+      message: "Failed to delete item",
+      details: error.message,
+    });
   }
 });
-
 
 export { router as itemRouter };

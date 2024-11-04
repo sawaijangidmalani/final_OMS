@@ -1,60 +1,28 @@
-import styled from "styled-components";
 import { BiEdit, BiTrash } from "react-icons/bi";
 import axios from "axios";
 import { useState, useEffect } from "react";
-
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-`;
-
-const Th = styled.th`
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
-`;
-
-const Td = styled.td`
-  border: 1px solid #ddd;
-  padding: 8px;
-`;
-
-const Tr = styled.tr`
-  &:nth-child(even) {
-    background-color: #f2f2f2;
-  }
-`;
-
-const HeadTr = styled(Tr)`
-  background-color: #5c9c5e;
-  color: white;
-`;
+import "../Style/Customer.css";
+import { Tooltip,  Popconfirm } from "antd";
 
 function AddSalesItem({ items, handleDeleteItem }) {
   const [itemsData, setItemsData] = useState([]);
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    // Fetch customer PO data when the component mounts
-    axios
-      .get("https://final-oms.onrender.com/customerpo/getCustomerPo")
+    axios.get("http://localhost:8000/item/getItems")
       .then((res) => {
-        setItemsData(res.data);
-        const totalCost = res.data.reduce(
-          (acc, item) => acc + (item.cost || 0),
-          0
-        );
-        setTotal(totalCost);
+        // setItemsData(res.data.data); 
+        console.log(res.data.data); 
       })
-      .catch((error) => {
-        console.error("Error fetching customer PO data:", error);
+      .catch(err => {
+        console.error("Error fetching products:", err);
       });
   }, []);
 
   const handleDelete = (unitcost) => {
     // Call API to delete item by unit cost
     axios
-      .delete(`https://final-oms.onrender.com/customerpo/delete`, {
+      .delete(`http://localhost:8000/customerpo/delete`, {
         data: { unitcost },
       })
       .then((response) => {
@@ -74,53 +42,80 @@ function AddSalesItem({ items, handleDeleteItem }) {
   };
 
   const handleUpdate = (invoice, cost) => {
-    // Handle the update action here (you can implement your own logic)
     console.log(`Edit clicked for Invoice: ${invoice}, Cost: ${cost}`);
-    // You can implement modal opening, form for update, or API call
   };
 
   return (
-    <>
-      <Table className="table table-bordered table-striped table-hover shadow">
-        <thead>
-          <HeadTr>
-            <Th>Item</Th>
-            <Th>Qty</Th>
-            <Th>Unit Cost</Th>
-            <Th>Tax</Th>
-            <Th>Sales Price</Th>
-            <Th>Action</Th>
-          </HeadTr>
+    <div className="table-responsive">
+      <table className="table table-bordered table-striped table-hover shadow">
+      <thead className="table-secondary">
+          <tr>
+            <th>Item</th>
+            <th>Qty</th>
+            <th>Unit Cost</th>
+            <th>Tax</th>
+            <th>Sales Price</th>
+            <th>Action</th>
+          </tr>
         </thead>
         <tbody>
           {itemsData.map((item, index) => (
-            <Tr key={index}>
-              <Td>{item.name}</Td>
-              <Td>{item.quantity}</Td>
-              <Td>{item.unitcost}</Td>
-              <Td>{item.tax}</Td>
-              <Td>{item.cost}</Td>
-              <Td>
-                <BiEdit
+            <tr key={index}>
+              <td>{item.Name}</td>
+              <td>{item.quantity}</td>
+              <td>{item.unitcost}</td>
+              <td>{item.tax}</td>
+              <td>{item.cost}</td>
+              <td>
+              <div className="buttons-group">
+              <Tooltip
+                        title="Edit"
+                        overlayInnerStyle={{
+                          backgroundColor: "rgb(41, 10, 244)",
+                          color: "white",
+                          borderRadius: "5px",
+                        }}
+                      >
+                        <button className="btns1"
                   onClick={() => handleUpdate(item.invoice, item.cost)}
-                  style={{ marginRight: "10px", cursor: "pointer" }}
-                />
+                >
+                  <BiEdit/>
+                  </button>
+                      </Tooltip>
 
-                <BiTrash
-                  onClick={() => handleDelete(item.unitcost)}
-                  style={{ cursor: "pointer" }}
-                />
-              </Td>
-            </Tr>
+                      <Tooltip
+                        title="Delete"
+                        overlayInnerStyle={{
+                          backgroundColor: "rgb(244, 10, 10)",
+                          color: "white",
+                          borderRadius: "5px",
+                        }}
+                      >
+                         <Popconfirm
+                          placement="topLeft"
+                          description="Are you sure to delete this item?"
+                          onConfirm={() => handleDelete(item.unitcost)}
+                          okText="Delete"
+                        >
+
+        <button className="btns2">
+                <BiTrash/>
+                  
+                </button>
+                </Popconfirm>
+                </Tooltip>
+                </div>
+              </td>
+            </tr>
           ))}
         </tbody>
-      </Table>
+      </table>
       <div>
         <p>
           Total: <span style={{ paddingLeft: "20px" }}>{total}</span>
         </p>
       </div>
-    </>
+    </div>
   );
 }
 

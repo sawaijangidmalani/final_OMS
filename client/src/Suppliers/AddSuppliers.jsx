@@ -19,18 +19,20 @@ function AddSuppliers({
   updateSupplierList,
 }) {
   const navigate = useNavigate();
-  const modalRef = useRef(); // Reference for the modal container
+  const modalRef = useRef();
 
   const initialData = {
-    id: null,
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-    area: "",
-    city: "",
-    status: "",
-    gstn: "",
+    SupplierID: null,
+    ProviderID: "1",
+    Name: "",
+    Email: "",
+    Phone: "",
+    Address: "",
+    Area: "",
+    City: "",
+    State: "",
+    Status: "",
+    GST: "",
   };
 
   const [formData, setFormData] = useState({ ...initialData });
@@ -47,17 +49,16 @@ function AddSuppliers({
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
-        closeModal(); 
+        closeModal();
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
 
-  
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [closeModal]);
+  }, [modalRef, closeModal]);
 
   const handleInputChange = (e) => {
     setFormData({
@@ -69,33 +70,30 @@ function AddSuppliers({
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.email || !formData.name || !formData.phone) {
+    if (!formData.Email || !formData.Name || !formData.Phone) {
       alert("Please fill out all required fields.");
       return;
     }
 
- 
-    const url = editingSuppliers
-    ? "https://final-oms.onrender.com/supplier/updateSupplier"
-    : "https://final-oms.onrender.com/supplier/addSupplier";
- 
- const method = editingSuppliers ? 'put' : 'post';
- 
- axios[method](url, formData)
-    .then(response => {
-      console.log("API Response:", response.data);
-      alert("Supplier saved successfully");
-      updateSupplierList(response.data);
-      closeModal();
-      window.location.reload();
-    })
-    .catch(error => {
-      console.error("API error:", error);
-      alert("Supplier not saved");
-    });
- 
+    const apiUrl = editingSuppliers
+      ? "http://localhost:8000/supplier/updateSupplier"
+      : "http://localhost:8000/supplier/add_supplier";
 
-    
+    axios
+      .post(apiUrl, formData)
+      .then((response) => {
+        alert(
+          editingSuppliers
+            ? "Supplier updated successfully"
+            : "Supplier saved successfully"
+        );
+        window.location.reload();
+        navigate("/supplier");
+      })
+      .catch((error) => {
+        alert("Something went wrong. Try again.");
+        console.error("Error:", error);
+      });
 
     setShowForm(false);
     closeModal();
@@ -110,40 +108,55 @@ function AddSuppliers({
     <div>
       {showForm && (
         <div className="style-model">
-          <Modal ref={modalRef}> 
+          <Modal ref={modalRef}>
             <div className="body-container">
               <form onSubmit={handleSubmit} className="customer-form">
                 <h3 className="form-heading">
                   {editingSuppliers ? "Edit Supplier" : "Add Supplier"}
                 </h3>
-                <label className="customer-form__label">
+
+ {/* <label className="customer-form__label">
+                  Provider ID:
+                  <input
+                    type="number"
+                    name="ProviderID"
+                    value={formData.ProviderID}
+                    onChange={handleInputChange}
+                    className="customer-form__input"
+                    required
+                  />
+                </label> */}
+
+<label className="customer-form__label">
                   Name:
                   <input
                     type="text"
-                    name="name"
-                    value={formData.name}
+                    name="Name"
+                    value={formData.Name}
                     onChange={handleInputChange}
                     className="customer-form__input"
                     required
                   />
                 </label>
+
                 <label className="customer-form__label">
                   Email:
                   <input
                     type="email"
-                    name="email"
-                    value={formData.email}
+                    name="Email"
+                    value={formData.Email}
                     onChange={handleInputChange}
                     className="customer-form__input"
                     required
                   />
                 </label>
+
                 <label className="customer-form__label">
                   Phone:
                   <input
                     type="tel"
-                    name="phone"
-                    value={formData.phone}
+                    name="Phone"
+                    value={formData.Phone}
                     onChange={handleInputChange}
                     className="customer-form__input"
                     required
@@ -152,62 +165,77 @@ function AddSuppliers({
                     title="Please enter a valid 10-digit phone number"
                   />
                 </label>
+
                 <label className="customer-form__label">
                   Address:
                   <input
                     type="text"
-                    name="address"
-                    value={formData.address}
+                    name="Address"
+                    value={formData.Address}
                     onChange={handleInputChange}
                     className="customer-form__input"
                   />
                 </label>
+
                 <label className="customer-form__label">
                   Area:
                   <input
                     type="text"
-                    name="area"
-                    value={formData.area}
+                    name="Area"
+                    value={formData.Area}
                     onChange={handleInputChange}
                     className="customer-form__input"
                   />
                 </label>
+
                 <label className="customer-form__label">
                   City:
                   <input
                     type="text"
-                    name="city"
-                    value={formData.city}
+                    name="City"
+                    value={formData.City}
                     onChange={handleInputChange}
                     className="customer-form__input"
                   />
                 </label>
+
+                <label className="customer-form__label">
+                  State:
+                  <input
+                    type="text"
+                    name="State"
+                    value={formData.State}
+                    onChange={handleInputChange}
+                    className="customer-form__input"
+                  />
+                </label>
+
                 <label className="customer-form__label">
                   Status:
                   <select
-                    name="status"
-                    value={formData.status}
+                    name="Status"
+                    value={formData.Status}
                     onChange={handleInputChange}
                     className="customer-form__input"
                   >
-                    <option value="select">Select Status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
+                    <option>Select Status</option>
+                    <option value={1}>Active</option>
+                    <option value={0}>Inactive</option>
                   </select>
                 </label>
 
                 <label className="customer-form__label">
-                  GSTN:
+                  GST:
                   <input
                     type="text"
-                    name="gstn"
-                    value={formData.gstn}
+                    name="GST"
+                    value={formData.GST}
                     onChange={handleInputChange}
                     className="customer-form__input"
                     required
                     pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$"
                     maxLength="15"
-                    title="Please enter a valid 15-character GSTIN"
+                    title="Please enter a valid 15-character GSTIN (e.g., 22AAAAA0000A1Z5)"
                   />
                 </label>
 

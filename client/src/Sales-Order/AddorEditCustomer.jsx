@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import styled from "styled-components";
+
+const Modal = styled.div`
+  position: fixed;
+  z-index: 100;
+  top: 5%;
+  left: 35%;
+  border-radius: 20px;
+`;
 
 const AddOrEditCustomer = ({ onPurchaseData, onClose }) => {
   const [products, setProducts] = useState([]); 
   const [selectedProduct, setSelectedProduct] = useState(null); 
 
   useEffect(() => {
-    console.log("hello")
-    axios.get("https://final-oms.onrender.com/item/getItems")
+    axios.get("http://localhost:8000/item/getItems")
       .then((res) => {
         setProducts(res.data.data); 
         console.log(res.data.data); 
@@ -76,7 +84,7 @@ const AddOrEditCustomer = ({ onPurchaseData, onClose }) => {
     setDate("");
     console.log(item);
   
-    await axios.post("https://final-oms.onrender.com/customerPo/insertCustomerPo", item)
+    await axios.post("http://localhost:8000/customerPo/insertCustomerPo", item)
       .then((res) => {
         console.log(res);
       })
@@ -87,26 +95,30 @@ const AddOrEditCustomer = ({ onPurchaseData, onClose }) => {
   
 
   return (
-    <>
-      <form onSubmit={handleSubmit} className="salesorder-form">
-        <h3 className="salesorder-form-heading">Add / Edit Item</h3>
+    <div>
+      <div className="style-model">
+        <Modal>
+        <div className="body-container">
+        <form onSubmit={handleSubmit} className="customer-form">
+        <h3 className="form-heading">Add / Edit Item</h3>
         
-        <label htmlFor="customer" className="customer-salesorder_label">
+        <label className="customer-form__label">
           Item Name:
-        </label>
+        
         <select
           id="customer"
           value={customer}
           onChange={handleProductChange}
-          className="customer-salesorder_input"
+          className="customer-form__input"
         >
           <option value="">Select a Product</option>
           {products.map((product, index) => (
-            <option key={index} value={product.name}>
-              {product.name}
+            <option key={index} value={product.Name}>
+              {product.Name}
             </option>
           ))}
         </select>
+        </label>
         
         <label htmlFor="availableQty" className="availableQty-salesorder_label">
           Available Qty:
@@ -163,16 +175,29 @@ const AddOrEditCustomer = ({ onPurchaseData, onClose }) => {
           className="remainingQty-salesorder_input"
         />
 
-        <div className="buttons-group">
-          <button type="submit" className="btns">
-            Save
-          </button>
-          <button type="button" onClick={onClose} className="btns">
-            Cancel
-          </button>
-        </div>
+    
+<div className="customer-form__button-container">
+                  <button
+                    type="submit"
+                    value="submit"
+                    className="customer-form__button"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="customer-form__button"
+                  >
+                    Cancel
+                  </button>
+                </div>
+
       </form>
-    </>
+      </div>
+      </Modal>
+      </div>
+    </div>
   );
 };
 

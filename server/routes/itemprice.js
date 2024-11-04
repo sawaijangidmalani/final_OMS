@@ -3,10 +3,21 @@ import con from "../utils/db.js";
 
 const router = express.Router();
 
-// Get all item prices
-router.get("/getItemPrices", async (req, res) => {
+router.get("/getItemPrices/:itemId", async (req, res) => {
+  const itemId = req.params.itemId;
+
   try {
-    const [results] = await con.query("SELECT * FROM item_price");
+    const [results] = await con.query(
+      "SELECT * FROM itemsstock WHERE ItemID = ?",
+      [itemId]
+    );
+
+    if (results.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No prices found for this item." });
+    }
+
     res.json(results);
   } catch (error) {
     console.error("Error fetching item prices:", error);
@@ -14,19 +25,31 @@ router.get("/getItemPrices", async (req, res) => {
   }
 });
 
-// POST route to add item price
+// Add Item Price
 router.post("/addItemPrice", async (req, res) => {
-  const { price, qty, date } = req.body;
-  const sql = "INSERT INTO item_price (price, qty, date) VALUES (?, ?, ?)";
+  const { ItemID, PurchasePrice, ProviderID, PurchaseDate, Qty, RemainingQty } =
+    req.body;
+  console.log(req.body);
+
+  const sql = `
+    INSERT INTO itemsstock 
+    (ItemID, PurchasePrice, ProviderID, PurchaseDate, Qty, RemainingQty) 
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
 
   try {
-    const [result] = await con.query(sql, [price, qty, date]);
+    const [result] = await con.query(sql, [
+      ItemID,
+      PurchasePrice,
+      ProviderID,
+      PurchaseDate,
+      Qty,
+      RemainingQty || 0,
+    ]);
+
     res.status(201).json({
       message: "Item price added successfully",
-      id: result.insertId,
-      price,
-      qty,
-      date,
+      ItemID: result.insertId,
     });
   } catch (error) {
     console.error("Database error:", error);
@@ -37,23 +60,31 @@ router.post("/addItemPrice", async (req, res) => {
   }
 });
 
-// PUT route to update item price
+// **3. Update existing item price (PUT)**
 router.put("/updateItemPrice/:id", async (req, res) => {
   const { id } = req.params;
-  const { price, qty, date } = req.body;
-  const sql = "UPDATE item_price SET price = ?, qty = ?, date = ? WHERE id = ?";
+  const { PurchasePrice, Qty, PurchaseDate } = req.body;
+
+  const sql = `
+    UPDATE itemsstock 
+    SET PurchasePrice = ?, Qty = ?, PurchaseDate = ? 
+    WHERE ItemStockID = ?
+  `;
 
   try {
-    const [result] = await con.query(sql, [price, qty, date, id]);
+    const [result] = await con.query(sql, [
+      PurchasePrice,
+      Qty,
+      PurchaseDate,
+      id,
+    ]);
+
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Item not found" });
     }
+
     res.json({
       message: "Item price updated successfully",
-      id,
-      price,
-      qty,
-      date,
     });
   } catch (error) {
     console.error("Database error:", error);
@@ -64,16 +95,19 @@ router.put("/updateItemPrice/:id", async (req, res) => {
   }
 });
 
-// Delete item price
+// **4. Delete item price (DELETE)**
 router.delete("/deleteItemPrice/:id", async (req, res) => {
   const { id } = req.params;
-  const sql = "DELETE FROM item_price WHERE id = ?";
+
+  const sql = "DELETE FROM itemsstock WHERE ItemStockID = ?";
 
   try {
     const [result] = await con.query(sql, [id]);
+
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Item not found" });
     }
+
     res.json({ message: "Item price deleted successfully" });
   } catch (error) {
     console.error("Error deleting item price:", error);

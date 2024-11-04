@@ -6,13 +6,16 @@ dotenv.config();
 async function createDBConnection() {
   try {
     const pool = mysql.createPool({
-      host: process.env.DB_HOST || 'mysql8002.site4now.net',
-      user: process.env.DB_USERNAME || 'aad71a_order',
-      password: process.env.DB_PASSWORD || '',
-      database: process.env.DB_DBNAME || 'db_aad71a_order',
-      port: process.env.DB_PORT || 3306,
+      host: process.env.DB_HOST,
+      user: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,    
+      database: process.env.DB_DBNAME,
+      port: process.env.DB_PORT,      
       connectionLimit: 10
     });
+console.log(process.env.DB_HOST);
+console.log(process.env.DB_DBNAME);
+console.log(process.env.DB_PORT)
 
     console.log("DB Connected");
     return pool;

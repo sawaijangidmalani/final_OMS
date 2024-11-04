@@ -130,7 +130,7 @@ function Dashboard() {
 
   useEffect(() => {
     axios
-      .get("https://final-oms.onrender.com/po/getpo")
+      .get("http://localhost:8000/po/getpo")
       .then((res) => {
         setItem(res.data);
       })
@@ -139,7 +139,7 @@ function Dashboard() {
       });
 
     axios
-      .get("https://final-oms.onrender.com/customerPo/getCustomerPo")
+      .get("http://localhost:8000/customerPo/getCustomerPo")
       .then((res) => {
         setSale(res.data);
       })
@@ -148,7 +148,7 @@ function Dashboard() {
       });
     axios
       .get(
-        "https://final-oms.onrender.com/customerPo/getRemainingPurchaseOrder"
+        "http://localhost:8000/customerPo/getRemainingPurchaseOrder"
       )
       .then((res) => {
         if (res.data.success) {

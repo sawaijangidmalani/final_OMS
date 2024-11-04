@@ -19,21 +19,24 @@ function AddCustomer({
   updateCustomerList,
 }) {
   const navigate = useNavigate();
+  const modalRef = useRef();
+
   const initialData = {
-    id: null,
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-    area: "",
-    city: "",
-    status: "",
-    gstn: "",
+    CustomerID: null,
+    ProviderID: "1",
+    Name: "",
+    Email: "",
+    Phone: "",
+    Address: "",
+    Area: "",
+    City: "",
+    State: "",
+    Status: "",
+    GST: "",
   };
 
   const [formData, setFormData] = useState({ ...initialData });
   const [showForm, setShowForm] = useState(true);
-  const modalRef = useRef(null); // Create a ref for the modal
 
   useEffect(() => {
     if (editingCustomer) {
@@ -46,10 +49,9 @@ function AddCustomer({
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
-        closeModal(); // Close the modal if clicked outside
+        closeModal();
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -65,40 +67,30 @@ function AddCustomer({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (!formData.email || !formData.name || !formData.phone) {
+    if (!formData.Email || !formData.Name || !formData.Phone) {
       alert("Please fill out all required fields.");
       return;
     }
 
-    if (editingCustomer) {
-      axios
-        .post(
-          "https://final-oms.onrender.com/customer/updateCustomer",
-          formData
-        )
-        .then((response) => {
-          alert("Customer updated successfully");
-          window.location.reload();
-          navigate("/customer");
-        })
-        .catch((error) => {
-          alert("Something went wrong. Try again.");
-          console.error("Error updating customer:", error);
-        });
-    } else {
-      axios
-        .post("https://final-oms.onrender.com/customer/add_customer", formData)
-        .then((response) => {
-          alert("Customer saved successfully");
-          window.location.reload();
-          navigate("/customer");
-        })
-        .catch((error) => {
-          alert("Something went wrong.");
-          console.error("Error adding customer:", error);
-        });
-    }
+    const apiUrl = editingCustomer
+      ? "http://localhost:8000/customer/updateCustomer"
+      : "http://localhost:8000/customer/add_customer";
+
+    axios
+      .post(apiUrl, formData)
+      .then((response) => {
+        alert(
+          editingCustomer
+            ? "Customer updated successfully"
+            : "Customer saved successfully"
+        );
+        window.location.reload();
+        navigate("/customer");
+      })
+      .catch((error) => {
+        alert("Something went wrong. Try again.");
+        console.error("Error:", error);
+      });
 
     setShowForm(false);
     closeModal();
@@ -119,34 +111,49 @@ function AddCustomer({
                 <h3 className="form-heading">
                   {editingCustomer ? "Edit Customer" : "Add Customer"}
                 </h3>
+
+                {/* <label className="customer-form__label">
+                  Provider ID:
+                  <input
+                    type="number"
+                    name="ProviderID"
+                    value={formData.ProviderID}
+                    onChange={handleInputChange}
+                    className="customer-form__input"
+                    required
+                  />
+                </label> */}
+
                 <label className="customer-form__label">
                   Name:
                   <input
                     type="text"
-                    name="name"
-                    value={formData.name}
+                    name="Name"
+                    value={formData.Name}
                     onChange={handleInputChange}
                     className="customer-form__input"
                     required
                   />
                 </label>
+
                 <label className="customer-form__label">
                   Email:
                   <input
                     type="email"
-                    name="email"
-                    value={formData.email}
+                    name="Email"
+                    value={formData.Email}
                     onChange={handleInputChange}
                     className="customer-form__input"
                     required
                   />
                 </label>
+
                 <label className="customer-form__label">
                   Phone:
                   <input
                     type="tel"
-                    name="phone"
-                    value={formData.phone}
+                    name="Phone"
+                    value={formData.Phone}
                     onChange={handleInputChange}
                     className="customer-form__input"
                     required
@@ -155,54 +162,71 @@ function AddCustomer({
                     title="Please enter a valid 10-digit phone number"
                   />
                 </label>
+
                 <label className="customer-form__label">
                   Address:
                   <input
                     type="text"
-                    name="address"
-                    value={formData.address}
+                    name="Address"
+                    value={formData.Address}
                     onChange={handleInputChange}
                     className="customer-form__input"
                   />
                 </label>
+
                 <label className="customer-form__label">
                   Area:
                   <input
                     type="text"
-                    name="area"
-                    value={formData.area}
+                    name="Area"
+                    value={formData.Area}
                     onChange={handleInputChange}
                     className="customer-form__input"
                   />
                 </label>
+
                 <label className="customer-form__label">
                   City:
                   <input
                     type="text"
-                    name="city"
-                    value={formData.city}
+                    name="City"
+                    value={formData.City}
                     onChange={handleInputChange}
                     className="customer-form__input"
                   />
                 </label>
+
+                <label className="customer-form__label">
+                  State:
+                  <input
+                    type="text"
+                    name="State"
+                    value={formData.State}
+                    onChange={handleInputChange}
+                    className="customer-form__input"
+                  />
+                </label>
+
                 <label className="customer-form__label">
                   Status:
                   <select
-                    name="status"
-                    value={formData.status}
+                    name="Status"
+                    value={formData.Status}
                     onChange={handleInputChange}
                     className="customer-form__input"
                   >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
+                    <option>Select Status</option>
+                    <option value={1}>Active</option>
+                    <option value={0}>Inactive</option>
                   </select>
                 </label>
+
                 <label className="customer-form__label">
-                  GSTN:
+                  GST:
                   <input
                     type="text"
-                    name="gstn"
-                    value={formData.gstn}
+                    name="GST"
+                    value={formData.GST}
                     onChange={handleInputChange}
                     className="customer-form__input"
                     required
@@ -211,6 +235,7 @@ function AddCustomer({
                     title="Please enter a valid 15-character GSTIN (e.g., 22AAAAA0000A1Z5)"
                   />
                 </label>
+
                 <div className="customer-form__button-container">
                   <button
                     type="submit"

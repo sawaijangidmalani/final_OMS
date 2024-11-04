@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import "../Style/Customer.css";
-import { Tooltip, Popconfirm } from "antd";
+import { Tooltip, Popconfirm, Pagination } from "antd";
 import { MdDelete } from "react-icons/md";
 import { BiSolidEdit } from "react-icons/bi";
 
@@ -14,34 +14,47 @@ const Modal = styled.div`
   border-radius: 20px;
 `;
 
-function ItemPrice({ handleClose, selectedItemName }) {
+function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
   const [itemPriceData, setItemPriceData] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editItemId, setEditItemId] = useState(null);
-  const [formData, setFormData] = useState({
-    price: "",
-    qty: "",
-    date: "",
+
+  const initialFormState = {
+    ItemStockID: "Null",
+    ItemID: selectedItemId,
+    PurchasePrice: "",
+    ProviderID: "1",
+    PurchaseDate: "",
+    Qty: "",
+    RemainingQty: "",
+  };
+
+  const [formData, setFormData] = useState({ ...initialFormState });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(4);
+  const [sortOrder, setSortOrder] = useState({
+    PurchasePrice: "asc",
+    Qty: "asc",
+    PurchaseDate: "asc",
   });
- 
+
+  const fetchItemPrices = async (itemId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/itemPrice/getItemPrices/${itemId}`
+      );
+      setItemPriceData(response.data);
+    } catch (error) {
+      console.error("Error fetching item prices:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchItemPrices = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:8000/itemPrice/getItemPrices"
-        );
-        setItemPriceData(response.data);
-        console.log(response.data);
-      } catch (error) {
-        console.error("Error fetching item prices:", error);
-      }
-    };
-
-    fetchItemPrices();
-  }, []);
-
-  console.log(itemPriceData);
+    if (selectedItemId) {
+      fetchItemPrices(selectedItemId);
+    }
+  }, [selectedItemId]);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -52,30 +65,20 @@ function ItemPrice({ handleClose, selectedItemName }) {
     event.preventDefault();
     try {
       if (isEditing) {
-        // Update existing item price
-        const response = await axios.put(
+        await axios.put(
           `http://localhost:8000/itemPrice/updateItemPrice/${editItemId}`,
           formData
         );
-        setItemPriceData(
-          itemPriceData.map((item) =>
-            item.id === editItemId ? response.data : item
-          )
-        );
         alert("Item price updated successfully!");
       } else {
-        // Add new item price
-        const response = await axios.post(
+        await axios.post(
           "http://localhost:8000/itemPrice/addItemPrice",
           formData
         );
-        setItemPriceData([...itemPriceData, response.data]);
         alert("Item price added successfully!");
       }
-
-      setFormData({ price: "", qty: "", date: "" });
-      setIsEditing(false);
-      setEditItemId(null);
+      fetchItemPrices(selectedItemId);
+      resetForm();
     } catch (error) {
       console.error("Error submitting form:", error);
       alert("Failed to add/update item price: " + error.message);
@@ -83,35 +86,58 @@ function ItemPrice({ handleClose, selectedItemName }) {
   };
 
   const handleEditItem = (item) => {
-    setFormData({
-      price: item.price,
-      qty: item.qty,
-      date: item.date,
-    });
+    setFormData(item);
     setIsEditing(true);
-    setEditItemId(item.id);
+    setEditItemId(item.ItemStockID);
   };
 
   const handleDelete = async (id) => {
-    // if (!window.confirm("Are you sure you want to delete this item?")) return;
-
     try {
       await axios.delete(
         `http://localhost:8000/itemPrice/deleteItemPrice/${id}`
       );
-      setItemPriceData(itemPriceData.filter((item) => item.id !== id));
-      alert("Item price deleted successfully!"); // Alert for successful deletion
+      setItemPriceData((prev) =>
+        prev.filter((item) => item.ItemStockID !== id)
+      );
+      alert("Item price deleted successfully!");
     } catch (error) {
       console.error("Error deleting item:", error);
-      alert("Failed to delete item price: " + error.message); // Alert for deletion failure
+      alert("Failed to delete item price: " + error.message);
     }
+  };
+
+  const resetForm = () => {
+    setFormData(initialFormState);
+    setIsEditing(false);
+    setEditItemId(null);
   };
 
   const handleCancel = () => {
     handleClose();
-    setFormData({ price: "", qty: "", date: "" });
-    setIsEditing(false);
+    resetForm();
   };
+
+  // Sorting function
+  const sortedData = itemPriceData.sort((a, b) => {
+    const priceComparison =
+      sortOrder.PurchasePrice === "asc"
+        ? a.PurchasePrice - b.PurchasePrice
+        : b.PurchasePrice - a.PurchasePrice;
+    if (priceComparison !== 0) return priceComparison;
+
+    const qtyComparison =
+      sortOrder.Qty === "asc" ? a.Qty - b.Qty : b.Qty - a.Qty;
+    if (qtyComparison !== 0) return qtyComparison;
+
+    const dateA = new Date(a.PurchaseDate);
+    const dateB = new Date(b.PurchaseDate);
+    return sortOrder.PurchaseDate === "asc" ? dateA - dateB : dateB - dateA;
+  });
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="style-model">
@@ -122,42 +148,39 @@ function ItemPrice({ handleClose, selectedItemName }) {
               {isEditing ? "Edit Item Price" : "Add Item Price"}
             </h3>
 
-            <label className="customer-form__label">
+            <label>
               Item Name: <strong>{selectedItemName}</strong>
             </label>
 
-            <label className="customer-form__label">
+            <label>
               Purchase Price:
               <input
                 type="text"
-                name="price"
-                value={formData.price}
+                name="PurchasePrice"
+                value={formData.PurchasePrice}
                 onChange={handleInputChange}
-                className="customer-form__input"
                 required
               />
             </label>
 
-            <label className="customer-form__label">
-              Date:
+            <label>
+              Purchase Date:
               <input
                 type="date"
-                name="date"
-                value={formData.date}
+                name="PurchaseDate"
+                value={formData.PurchaseDate}
                 onChange={handleInputChange}
-                className="customer-form__input"
                 required
               />
             </label>
 
-            <label className="customer-form__label">
+            <label>
               Quantity:
               <input
                 type="text"
-                name="qty"
-                value={formData.qty}
+                name="Qty"
+                value={formData.Qty}
                 onChange={handleInputChange}
-                className="customer-form__input"
                 required
               />
             </label>
@@ -167,19 +190,49 @@ function ItemPrice({ handleClose, selectedItemName }) {
               <table className="table table-bordered table-striped table-hover shadow">
                 <thead className="table-secondary">
                   <tr>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Date</th>
+                    <th
+                      onClick={() =>
+                        setSortOrder((prev) => ({
+                          ...prev,
+                          PurchasePrice:
+                            prev.PurchasePrice === "asc" ? "desc" : "asc",
+                        }))
+                      }
+                    >
+                      Price {sortOrder.PurchasePrice === "asc" ? "↑" : "↓"}
+                    </th>
+                    <th
+                      onClick={() =>
+                        setSortOrder((prev) => ({
+                          ...prev,
+                          Qty: prev.Qty === "asc" ? "desc" : "asc",
+                        }))
+                      }
+                    >
+                      Quantity {sortOrder.Qty === "asc" ? "↑" : "↓"}
+                    </th>
+                    <th
+                      onClick={() =>
+                        setSortOrder((prev) => ({
+                          ...prev,
+                          PurchaseDate:
+                            prev.PurchaseDate === "asc" ? "desc" : "asc",
+                        }))
+                      }
+                    >
+                      Date {sortOrder.PurchaseDate === "asc" ? "↑" : "↓"}
+                    </th>
                     <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {itemPriceData.map((item) => (
-                    <tr key={item.id}>
-                      <td>{item.price}</td>
-                      <td>{item.qty}</td>
-                      <td>{new Date(item.date).toLocaleDateString()}</td>
-
+                  {currentItems.map((item) => (
+                    <tr key={item.ItemStockID}>
+                      <td>{item.PurchasePrice}</td>
+                      <td>{item.Qty}</td>
+                      <td>
+                        {new Date(item.PurchaseDate).toLocaleDateString()}
+                      </td>
                       <td>
                         <div className="buttons-group">
                           <Tooltip
@@ -197,7 +250,6 @@ function ItemPrice({ handleClose, selectedItemName }) {
                               <BiSolidEdit />
                             </button>
                           </Tooltip>
-
                           <Tooltip
                             title="Delete"
                             overlayInnerStyle={{
@@ -207,9 +259,9 @@ function ItemPrice({ handleClose, selectedItemName }) {
                             }}
                           >
                             <Popconfirm
-                              placement="topLeft"
+                              placement="topRight"
                               description="Are you sure to delete this item Price?"
-                              onConfirm={() => handleDelete(item.id)}
+                              onConfirm={() => handleDelete(item.ItemStockID)}
                               okText="Delete"
                             >
                               <button className="btns1">
@@ -224,6 +276,14 @@ function ItemPrice({ handleClose, selectedItemName }) {
                 </tbody>
               </table>
             </div>
+
+            <Pagination
+              current={currentPage}
+              pageSize={itemsPerPage}
+              total={itemPriceData.length}
+              onChange={(page) => setCurrentPage(page)}
+              showSizeChanger={false}
+            />
 
             <div className="customer-form__button-container">
               <button type="submit" className="customer-form__button">

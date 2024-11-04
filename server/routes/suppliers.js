@@ -1,112 +1,105 @@
 import express from "express";
-import con from "../utils/db.js";
+import pool from "../utils/db.js";
 
 const router = express.Router();
 
-// Get all suppliers
-router.get('/suppliers', async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT * FROM suppliers');
-    res.json({ status: true, data: rows });
-  } catch (error) {
-    console.error("Error fetching suppliers:", error);
-    res.status(500).json({ status: false, message: "Error fetching suppliers" });
-  }
-});
-
 // Add a new supplier
-router.post("/addSupplier", async (req, res) => {
-  const { name, email, phone, area, address, city, status, gstn } = req.body;
-
+router.post("/add_supplier", async (req, res) => {
+  const formData = req.body;
   const sql = `
-    INSERT INTO suppliers (name, email, phone, area, address, city, status, gstn)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO suppliers 
+    (Name, Email, Phone, Address, Area, City, State, Status, GST, ProviderID) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
+  const values = [
+    formData.Name,
+    formData.Email,
+    formData.Phone,
+    formData.Address,
+    formData.Area,
+    formData.City,
+    formData.State,
+    formData.Status,
+    formData.GST,
+    formData.ProviderID || 1,
+  ];
 
   try {
-    await pool.query(sql, [
-      name,
-      email,
-      phone,
-      area,
-      address,
-      city,
-      status,
-      gstn,
-    ]);
-    res.status(201).json({ status: true, message: "Supplier data inserted successfully" });
+    const [result] = await pool.query(sql, values);
+    console.log(`Inserted ${result.affectedRows} row(s)`);
+    res.json({ added: true, data: formData });
   } catch (err) {
-    console.error("Error inserting supplier data:", err);
-    res.status(500).json({ status: false, message: "Error inserting supplier data" });
+    console.error("Error inserting data:", err.stack);
+    res.status(500).send("Error inserting data");
   }
 });
 
-// Get all suppliers (duplicate of /suppliers)
-router.get("/getSuppliers", async (req, res) => {
+// Route to get all supplier data
+router.get("/getSupplierData", async (req, res) => {
   const sql = "SELECT * FROM suppliers";
-
   try {
-    const [results] = await pool.query(sql);
-    res.status(200).json({ status: true, data: results });
+    const [result] = await pool.query(sql);
+    res.json(result);
   } catch (err) {
-    console.error("Error fetching supplier data:", err);
-    res.status(500).json({ status: false, message: "Error fetching supplier data" });
+    console.error("Error fetching supplier data:", err.stack);
+    res.status(500).send("Error fetching supplier data");
   }
 });
 
-// Edit supplier details
-router.put("/editSupplier", async (req, res) => {
-  const { name, email, phone, area, address, city, status, gstn } = req.body;
+// Route to delete a supplier by email
+router.delete("/deleteSupplier", async (req, res) => {
+  const { email } = req.body;
+  const sql = "DELETE FROM suppliers WHERE Email = ?";
 
+  try {
+    const [result] = await pool.query(sql, [email]);
+    res.json({
+      status: result.affectedRows > 0,
+      message:
+        result.affectedRows > 0
+          ? "Supplier deleted successfully"
+          : "Supplier not found",
+    });
+  } catch (err) {
+    console.error("Error deleting supplier:", err.stack);
+    res.status(500).json({ status: false, message: "Error deleting supplier" });
+  }
+});
+
+router.post("/updateSupplier", async (req, res) => {
+  const { Email, Name, Phone, Area, Address, City, State, Status, GST } =
+    req.body;
   const sql = `
-    UPDATE suppliers 
-    SET name = ?, phone = ?, area = ?, address = ?, city = ?, status = ?, gstn = ?
-    WHERE email = ?
+    UPDATE suppliers
+    SET Name = ?, Phone = ?, Area = ?, Address = ?, City = ?, State = ?, Status = ?, GST = ?
+    WHERE Email = ?
   `;
 
   try {
     const [result] = await pool.query(sql, [
-      name,
-      phone,
-      area,
-      address,
-      city,
-      status,
-      gstn,
-      email,
+      Name,
+      Phone,
+      Area,
+      Address,
+      City,
+      State,
+      Status,
+      GST,
+      Email,
     ]);
 
-    if (result.affectedRows > 0) {
-      res.json({ status: true, message: "Supplier data updated successfully" });
-    } else {
-      res.status(404).json({ status: false, message: "Supplier not found" });
-    }
+    res.json({
+      status: result.affectedRows > 0,
+      message:
+        result.affectedRows > 0
+          ? "Supplier data updated successfully"
+          : "Supplier not found",
+    });
   } catch (err) {
-    console.error("Error updating supplier data:", err);
-    res.status(500).json({ status: false, message: "Error updating supplier data" });
-  }
-});
-
-// Delete a supplier
-router.delete("/deleteSupplier", async (req, res) => {
-  const { email } = req.body;
-
-  const sql = `
-    DELETE FROM suppliers 
-    WHERE email = ?
-  `;
-
-  try {
-    const [result] = await pool.query(sql, [email]);
-
-    if (result.affectedRows > 0) {
-      res.json({ status: true, message: "Supplier data deleted successfully" });
-    } else {
-      res.status(404).json({ status: false, message: "Supplier not found" });
-    }
-  } catch (err) {
-    console.error("Error deleting supplier data:", err);
-    res.status(500).json({ status: false, message: "Error deleting supplier data" });
+    console.error("Error updating supplier:", err.stack);
+    res
+      .status(500)
+      .json({ status: false, message: "Error updating supplier data" });
   }
 });
 

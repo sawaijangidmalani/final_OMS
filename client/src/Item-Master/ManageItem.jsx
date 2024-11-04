@@ -18,13 +18,14 @@ import "../Style/Customer.css";
 
 function ManageItem() {
   const [items, setItems] = useState([]);
+  const [itemUnits, setItemUnits] = useState({});
   const [selectedItem, setSelectedItem] = useState("");
   const [selectedSupplier, setSelectedSupplier] = useState("");
   const [isItemDropdownOpen, setIsItemDropdownOpen] = useState(false);
   const [isSupplierDropdownOpen, setIsSupplierDropdownOpen] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(8);
+  const [pageSize] = useState(4);
   const [searchTermItem, setSearchTermItem] = useState("");
   const [searchTermSupplier, setSearchTermSupplier] = useState("");
   const [filteredItems, setFilteredItems] = useState([]);
@@ -32,11 +33,12 @@ function ManageItem() {
   const [showStock, setShowStock] = useState(false);
   const [showStocks, setShowStocks] = useState(false);
   const [selectedItemName, setSelectedItemName] = useState("");
+  const [selectedItemId, setSelectedItemId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: "", order: "asc" });
 
   useEffect(() => {
-    axios.get("https://final-oms.onrender.com/item/getItems").then((data) => {
+    axios.get("http://localhost:8000/item/getItems").then((data) => {
       if (!data?.data?.error) {
         setItems(data?.data?.data);
         setFilteredItems(data?.data?.data);
@@ -45,7 +47,8 @@ function ManageItem() {
   }, []);
 
   const handleShowStock = (item) => {
-    setSelectedItemName(item.name);
+    setSelectedItemName(item.Name);
+    setSelectedItemId(item.ItemID);
     setShowStocks(true);
   };
   const handleInputChange = (e) => {
@@ -75,10 +78,10 @@ function ManageItem() {
   const handleSearch = () => {
     const filtered = items.filter(
       (item) =>
-        item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.brand.includes(searchTerm) ||
-        item.unit.includes(searchTerm)
+        item.Description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.Category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.Brand.includes(searchTerm) ||
+        item.UnitName.includes(searchTerm)
     );
 
     setFilteredItems(filtered);
@@ -88,8 +91,8 @@ function ManageItem() {
   const filterItems = (itemName, supplierName) => {
     const filtered = items.filter(
       (item) =>
-        (itemName ? item.name === itemName : true) &&
-        (supplierName ? item.supplier === supplierName : true)
+        (itemName ? item.Name === itemName : true) &&
+        (supplierName ? item.SupplierName === supplierName : true)
     );
     setFilteredItems(filtered);
     setCurrentPage(1);
@@ -100,7 +103,7 @@ function ManageItem() {
     setSearchTermItem(value);
 
     const filtered = items.filter((item) =>
-      item.name.toLowerCase().includes(value)
+      item.Name.toLowerCase().includes(value)
     );
 
     setFilteredItems(filtered);
@@ -112,7 +115,7 @@ function ManageItem() {
     setSearchTermSupplier(value);
 
     const filtered = items.filter((item) =>
-      item.supplier.toLowerCase().includes(value)
+      item.SupplierName.toLowerCase().includes(value)
     );
 
     setFilteredItems(filtered);
@@ -146,16 +149,19 @@ function ManageItem() {
     setFilteredItems(sortedItems);
   };
 
-  const handleDelete = (name) => {
+  const handleDelete = (ItemID) => {
     axios
-      .delete("https://final-oms.onrender.com/item/deleteItems", {
-        data: { name: name },
+      .delete("http://localhost:8000/item/deleteItems", {
+        data: { ItemID: ItemID },
       })
       .then(() => {
         alert("Item deleted successfully");
-        setItems((prevItems) => prevItems.filter((item) => item.name !== name));
+
+        setItems((prevItems) =>
+          prevItems.filter((item) => item.ItemID !== ItemID)
+        );
         setFilteredItems((prevItems) =>
-          prevItems.filter((item) => item.name !== name)
+          prevItems.filter((item) => item.ItemID !== ItemID)
         );
       })
       .catch((err) => {
@@ -213,17 +219,17 @@ function ManageItem() {
                   />
                   {items
                     .filter((item) =>
-                      item.name
-                        .toLowerCase()
-                        .includes(searchTermItem.toLowerCase())
+                      item.Name.toLowerCase().includes(
+                        searchTermItem.toLowerCase()
+                      )
                     )
                     .map((item) => (
                       <div
                         className="option"
-                        key={item.id}
-                        onClick={() => handleItemSelect(item.name)}
+                        key={item.ItemID}
+                        onClick={() => handleItemSelect(item.Name)}
                       >
-                        {item.name}
+                        {item.Name}
                       </div>
                     ))}
                 </div>
@@ -248,17 +254,17 @@ function ManageItem() {
                   />
                   {items
                     .filter((item) =>
-                      item.supplier
-                        .toLowerCase()
-                        .includes(searchTermSupplier.toLowerCase())
+                      item.SupplierName.toLowerCase().includes(
+                        searchTermSupplier.toLowerCase()
+                      )
                     )
                     .map((item) => (
                       <div
                         className="option"
-                        key={item.id}
-                        onClick={() => handleSupplierSelect(item.supplier)}
+                        key={item.SupplierName}
+                        onClick={() => handleSupplierSelect(item.SupplierName)}
                       >
-                        {item.supplier}
+                        {item.SupplierName}
                       </div>
                     ))}
                 </div>
@@ -288,45 +294,45 @@ function ManageItem() {
           <table className="table table-bordered table-striped table-hover shadow">
             <thead className="table-secondary">
               <tr>
-                <th onClick={() => handleSort("item name")}>
-                  Item Name {getSortArrow("item name")}
+                <th onClick={() => handleSort("Name")}>
+                  Item Name {getSortArrow("Name")}
                 </th>
 
-                <th onClick={() => handleSort("supplier")}>
-                  Supplier {getSortArrow("supplier")}
+                <th onClick={() => handleSort("SupplierID")}>
+                  Supplier {getSortArrow("SupplierID")}
                 </th>
-                <th onClick={() => handleSort("category")}>
-                  Category {getSortArrow("category")}
-                </th>
-
-                <th onClick={() => handleSort("brand")}>
-                  Brand {getSortArrow("brand")}
+                <th onClick={() => handleSort("Category")}>
+                  Category {getSortArrow("Category")}
                 </th>
 
-                <th onClick={() => handleSort("description")}>
-                  Description {getSortArrow("description")}
+                <th onClick={() => handleSort("Brand")}>
+                  Brand {getSortArrow("Brand")}
                 </th>
 
-                <th onClick={() => handleSort("unit")}>
-                  Unit {getSortArrow("unit")}
+                <th onClick={() => handleSort("Stock")}>
+                  Stock {getSortArrow("Stock")}
                 </th>
 
-                <th onClick={() => handleSort("status")}>
-                  Status {getSortArrow("status")}
+                <th onClick={() => handleSort("ItemUnitID")}>
+                  Unit {getSortArrow("ItemUnitID")}
+                </th>
+
+                <th onClick={() => handleSort("Status")}>
+                  Status {getSortArrow("Status")}
                 </th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {currentData.map((item) => (
-                <tr key={item.name}>
-                  <td>{item.name}</td>
-                  <td>{item.supplier}</td>
-                  <td>{item.category}</td>
-                  <td>{item.brand}</td>
-                  <td>{item.description}</td>
-                  <td>{item.unit}</td>
-                  <td>{item.status}</td>
+                <tr key={item.Name}>
+                  <td>{item.Name}</td>
+                  <td>{item.SupplierName}</td>
+                  <td>{item.Category}</td>
+                  <td>{item.Brand}</td>
+                  <td>{item.Stock}</td>
+                  <td>{item.UnitName}</td>
+                  <td>{item.Status === 1 ? "Active" : "Inactive"}</td>{" "}
                   <td>
                     <div className="buttons-group">
                       <Tooltip
@@ -370,7 +376,7 @@ function ManageItem() {
                         <Popconfirm
                           placement="topLeft"
                           description="Are you sure to delete this item?"
-                          onConfirm={() => handleDelete(item.name)}
+                          onConfirm={() => handleDelete(item.ItemID)}
                           okText="Delete"
                         >
                           <button className="btns1">
@@ -421,6 +427,7 @@ function ManageItem() {
         <ItemPrice
           handleClose={() => setShowStocks(false)}
           selectedItemName={selectedItemName}
+          selectedItemId={selectedItemId}
         />
       )}
     </>

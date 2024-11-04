@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import AddCustomer from "./AddCustomer";
-import { BiSolidEdit, BiSearch, BiAddToQueue, BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
+import {
+  BiSolidEdit,
+  BiSearch,
+  BiAddToQueue,
+  BiUpArrowAlt,
+  BiDownArrowAlt,
+} from "react-icons/bi";
 import { MdDelete } from "react-icons/md";
 import axios from "axios";
 import { Tooltip, Pagination, Modal, Popconfirm } from "antd";
@@ -10,26 +16,13 @@ function ManageCustomer() {
   const [customers, setCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [visible, setVisible] = useState(false);
-  const [showModal, setShowModal] = useState("");
+  const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(8);
+  const [pageSize] = useState(4);
   const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [sortField, setSortField] = useState("");
-  const [sortOrder, setSortOrder] = useState("asc"); 
-
-  // Fetch customer data from API
-  useEffect(() => {
-    axios
-      .get("https://final-oms.onrender.com/customer/getCustomerData")
-      .then((result) => {
-        setCustomers(result.data);
-        setFilteredCustomers(result.data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }, []);
+  const [sortOrder, setSortOrder] = useState("asc");
 
   const handleInputChange = (e) => {
     const value = e.target.value;
@@ -44,26 +37,50 @@ function ManageCustomer() {
   };
 
   const handleSearch = () => {
-    const filtered = customers.filter(
-      (customer) =>
-        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.phone.includes(searchTerm)
-    );
+    const filtered = customers.filter((customer) => {
+      const name = customer.Name ? customer.Name.toLowerCase() : "";
+      const email = customer.Email ? customer.Email.toLowerCase() : "";
+      const phone = customer.Phone ? customer.Phone : "";
+
+      return (
+        name.includes(searchTerm.toLowerCase()) ||
+        email.includes(searchTerm.toLowerCase()) ||
+        phone.includes(searchTerm)
+      );
+    });
 
     setFilteredCustomers(filtered);
     setCurrentPage(1);
   };
 
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        const result = await axios.get(
+          "http://localhost:8000/customer/getCustomerData"
+        );
+        setCustomers(result.data);
+        setFilteredCustomers(result.data);
+      } catch (err) {
+        console.error("Error fetching customer data:", err);
+      }
+    };
+
+    fetchCustomers();
+  }, []);
+
   const handleDelete = (email) => {
     axios
-      .post("https://final-oms.onrender.com/customer/deleteCustomer", { email })
+      .delete(`http://localhost:8000/customer/deleteCustomer`, {
+        data: { email },
+      })
       .then(() => {
         alert("Customer deleted successfully");
         setCustomers(customers.filter((customer) => customer.email !== email));
         setFilteredCustomers(
           filteredCustomers.filter((customer) => customer.email !== email)
         );
+        window.location.reload();
       })
       .catch((err) => {
         console.log(err);
@@ -92,21 +109,27 @@ function ManageCustomer() {
     setCustomers((prevCustomers) => {
       if (editingCustomer) {
         return prevCustomers.map((customer) =>
-          customer.id === newCustomer.id ? newCustomer : customer
+          customer.CustomerID === newCustomer.CustomerID
+            ? newCustomer
+            : customer
         );
       } else {
         return [...prevCustomers, newCustomer];
       }
     });
+
     setFilteredCustomers((prevCustomers) => {
       if (editingCustomer) {
         return prevCustomers.map((customer) =>
-          customer.id === newCustomer.id ? newCustomer : customer
+          customer.CustomerID === newCustomer.CustomerID
+            ? newCustomer
+            : customer
         );
       } else {
         return [...prevCustomers, newCustomer];
       }
     });
+
     setShowModal(false);
   };
 
@@ -132,7 +155,10 @@ function ManageCustomer() {
   };
 
   const startIndex = (currentPage - 1) * pageSize;
-  const currentData = filteredCustomers.slice(startIndex, startIndex + pageSize);
+  const currentData = filteredCustomers.slice(
+    startIndex,
+    startIndex + pageSize
+  );
 
   return (
     <>
@@ -163,32 +189,32 @@ function ManageCustomer() {
           <table className="table table-bordered table-striped table-hover shadow">
             <thead className="table-secondary">
               <tr>
-                <th onClick={() => handleSort("name")}>
-                  Name {getSortArrow("name")}
+                <th onClick={() => handleSort("Name")}>
+                  Name {getSortArrow("Name")}
                 </th>
-                <th onClick={() => handleSort("email")}>
-                  Email {getSortArrow("email")}
+                <th onClick={() => handleSort("Email")}>
+                  Email {getSortArrow("Email")}
                 </th>
-                <th onClick={() => handleSort("phone")}>
-                  Phone {getSortArrow("phone")}
+                <th onClick={() => handleSort("Phone")}>
+                  Phone {getSortArrow("Phone")}
                 </th>
-                <th onClick={() => handleSort("area")}>
-                  Area {getSortArrow("area")}
+                <th onClick={() => handleSort("Area")}>
+                  Area {getSortArrow("Area")}
                 </th>
-                <th onClick={() => handleSort("status")}>
-                  Status {getSortArrow("status")}
+                <th onClick={() => handleSort("Status")}>
+                  Status {getSortArrow("Status")}
                 </th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {currentData.map((customer) => (
-                <tr key={customer.email}>
-                  <td>{customer.name}</td>
-                  <td>{customer.email}</td>
-                  <td>{customer.phone}</td>
-                  <td>{customer.area}</td>
-                  <td>{customer.status}</td>
+                <tr key={customer.Email}>
+                  <td>{customer.Name}</td>
+                  <td>{customer.Email}</td>
+                  <td>{customer.Phone}</td>
+                  <td>{customer.Area}</td>
+                  <td>{customer.Status === 1 ? "Active" : "Inactive"}</td>{" "}
                   <td>
                     <div className="buttons-group">
                       <Tooltip
@@ -206,7 +232,6 @@ function ManageCustomer() {
                           <BiSolidEdit />
                         </button>
                       </Tooltip>
-
                       <Tooltip
                         title="Delete"
                         overlayInnerStyle={{
@@ -218,7 +243,7 @@ function ManageCustomer() {
                         <Popconfirm
                           placement="topLeft"
                           description="Are you sure to delete this customer?"
-                          onConfirm={() => handleDelete(customer.email)}
+                          onConfirm={() => handleDelete(customer.Email)}
                           okText="Delete"
                         >
                           <button className="btns2">
@@ -232,6 +257,7 @@ function ManageCustomer() {
               ))}
             </tbody>
           </table>
+
           <Pagination
             current={currentPage}
             total={filteredCustomers.length}
@@ -251,7 +277,6 @@ function ManageCustomer() {
         {showModal && (
           <AddCustomer
             customers={customers}
-            setCustomers={setCustomers}
             closeModal={closeModal}
             editingCustomer={editingCustomer}
             updateCustomerList={updateCustomerList}

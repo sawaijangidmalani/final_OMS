@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Header from "../Header/Header";
-import Login from "./Login";
+// import Login from "./Login";
 import "./Sign.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -61,7 +61,7 @@ function Signin() {
 
     if (validForm()) {
       try {
-        const { data } = await axios.post("https://final-oms.onrender.com/auth/signup", sign);
+        const { data } = await axios.post("http://localhost:8000/auth/signup", sign);
         if(data?.success){
           navigate("/dashboard")
         }        

@@ -85,37 +85,34 @@ router.post("/insertpo", async (req, res) => {
   }
 });
 
-// Get purchase orders
+
+
+// router.get("/getpo", async (req, res) => {
+//   const sql = "SELECT * FROM customersalesorder"; // Fetch data from customersalesorder
+//   try {
+//     const [rows] = await con.query(sql);
+//     res.status(200).json(rows);
+//   } catch (err) {
+//     console.error("Error fetching sales orders:", err);
+//     res.status(500).json({ error: true, message: "Error fetching data" });
+//   }
+// });
 router.get("/getpo", async (req, res) => {
-  const query = "SELECT * FROM purchase_orders";
+  const query = `
+    SELECT so.*, c.Name as CustomerName 
+    FROM customersalesorder so
+    JOIN customer c ON so.CustomerID = c.CustomerID
+  `;
 
   try {
-    const [results] = await con.query(query);
-
-    const processedResults = results.map((record) => {
-      let itemData;
-      try {
-        itemData =
-          typeof record.item === "string"
-            ? JSON.parse(record.item)
-            : record.item;
-      } catch (parseError) {
-        console.error("Error parsing item data:", parseError);
-        itemData = null; // Or handle this in a way that fits your application
-      }
-
-      return {
-        ...record,
-        item: itemData,
-      };
-    });
-
-    res.status(200).json(processedResults);
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    res.status(500).json({ error: true, message: "Error fetching data", details: error.message });
+    const [rows] = await con.query(query);
+    res.status(200).json(rows);
+  } catch (err) {
+    console.error("Error fetching sales orders:", err);
+    res.status(500).json({ error: true, message: "Error fetching data", details: err.message });
   }
 });
+
 
 
 

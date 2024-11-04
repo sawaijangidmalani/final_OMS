@@ -1,62 +1,84 @@
 import React, { useState, useEffect } from "react";
-import "./salesorder.css";
+import "../Style/salesorder.css";
 import AddSalesItem from "./AddSalesItem";
 import AddOrEditCustomer from "./AddorEditCustomer";
 import axios from "axios";
+import "../Style/Add.css";
 
-const SalesOrder = ({ onSalesData, addCustomer, addInvoice, saleData, onClose }) => {
-  const [customerdata, setCustomerData] = useState([]);
-  const [customerPoData, setCustomerPoData] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [customer, setCustomer] = useState(saleData ? saleData.customer : "test");
-  const [invoice, setInvoice] = useState(saleData ? saleData.invoice : "");
-  const [date, setDate] = useState(saleData ? saleData.date : "");
-  const [status, setStatus] = useState(saleData ? saleData.status : "Draft");
-  const [items, setItems] = useState(saleData ? saleData.items : []);
-  const [itemName, setItemName] = useState("");
-  const [qty, setQty] = useState("");
-  const [unitCost, setUnitCost] = useState("");
-  const [tax, setTax] = useState("");
-  const [purchasePrice, setPurchasePrice] = useState("");
-  const [addclick, setAddClick] = useState(false);
+const SalesOrder = ({ onClose }) => {
+  const [customerData, setCustomerData] = useState([]);
+  const [formData, setFormData] = useState({
+    CustomerID: "",
+    ProviderID:  "1",
+    SalesOrderNumber: "",
+    SalesDate: "",
+    Status: "",
+    SalesTotalPrice: 0.0,
+  });
+  const [salesOrderItems, setSalesOrderItems] = useState([]);
+  const [addClick, setAddClick] = useState(false);
 
   useEffect(() => {
-    axios.get("https://final-oms.onrender.com/customer/getCustomerData").then((res) => {
+    const fetchCustomerData = async () => {
+      const res = await axios.get(
+        "http://localhost:8000/customer/getCustomerData"
+      );
       setCustomerData(res.data);
-    });
+    };
 
-    axios.get("https://final-oms.onrender.com/customerpo/getCustomerPo").then((res) => {
-      setCustomerPoData(res.data);
-
-      const calculatedTotal = res.data.reduce((acc, po) => acc + po.quantity * po.unitPrice, 0); // Assuming there's a `unitPrice` field in the PO data
-      setTotal(calculatedTotal);
-      console.log(customerPoData)
-    });
+    fetchCustomerData();
   }, []);
 
-  const handleSubmit = (event) => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddSaleItem = (newItem) => {
+    const updatedItems = [...salesOrderItems, newItem];
+    setSalesOrderItems(updatedItems);
+    calculateTotalPrice(updatedItems);
+  };
+
+  const calculateTotalPrice = (items) => {
+    const total = items.reduce(
+      (acc, item) => acc + item.qty * item.unitCost,
+      0
+    );
+    setFormData((prev) => ({ ...prev, SalesTotalPrice: total }));
+  };
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    const data = { customer, invoice, date, status, items };
-    onSalesData(data);
-    addCustomer(customer);
-    addInvoice(invoice);
-    resetForm();
-  };
-
-  const handleAddSaleItem = () => {
-    const newItem = {
-      item: itemName,
-      qty: qty,
-      unitCost: unitCost,
-      tax: tax,
-      purchasePrice: purchasePrice,
+    const data = {
+      ...formData,
     };
-    setItems([...items, newItem]);
-    resetItemForm();
+
+    try {
+      await axios.post(
+        "http://localhost:8000/customerpo/insertCustomerPo",
+        data
+      );
+      alert("Sales Order created successfully!");
+      window.location.reload();
+      onClose();
+      resetForm();
+    } catch (err) {
+      console.error(
+        "Error creating sales order:",
+        err.response ? err.response.data : err.message
+      );
+    }
   };
 
-  const handleSave = () => {
-    handleSubmit(new Event("submit"));
+  const handleDeleteItem = (index) => {
+    const updatedItems = salesOrderItems.filter((_, i) => i !== index);
+    setSalesOrderItems(updatedItems);
+    calculateTotalPrice(updatedItems);
+  };
+
+  const handleAdd = () => {
+    setAddClick(true);
   };
 
   const handleCancel = () => {
@@ -65,112 +87,123 @@ const SalesOrder = ({ onSalesData, addCustomer, addInvoice, saleData, onClose })
   };
 
   const resetForm = () => {
-    setCustomer("test");
-    setDate("");
-    setInvoice("");
-    setStatus("Draft");
-    setItems([]);
-    resetItemForm();
-  };
-
-  const handleAdd = () => {
-    setAddClick(true);
-  };
-
-  const resetItemForm = () => {
-    setItemName("");
-    setQty("");
-    setUnitCost("");
-    setTax("");
-    setPurchasePrice("");
-  };
-
-  const handleDeleteItem = (index) => {
-    const updatedItems = items.filter((_, i) => i !== index);
-    setItems(updatedItems);
+    setFormData({
+      CustomerID: "",
+      ProviderID: "1",
+      SalesOrderNumber: "",
+      SalesDate: "",
+      Status: 1,
+      SalesTotalPrice: 0.0,
+    });
+    setSalesOrderItems([]);
   };
 
   return (
     <>
-      {addclick ? (
-        <AddOrEditCustomer onClose={handleCancel} onPurchaseData={handleAddSaleItem} />
+      {addClick ? (
+        <AddOrEditCustomer
+          onClose={handleCancel}
+          onPurchaseData={handleAddSaleItem}
+        />
       ) : (
         <>
           <form onSubmit={handleSubmit} className="salesorder-form">
-            <h3 className="salesorder-form-heading">Add / Edit Customer PO </h3>
-            <label htmlFor="customer" className="customer-salesorder_label">
+            <h3 className="salesorder-form-heading">Add / Edit Sales Order</h3>
+
+            <label htmlFor="customer">
               Customer:
+              <select
+                id="customer"
+                name="CustomerID"
+                value={formData.CustomerID}
+                onChange={handleInputChange}
+                className="customer-salesorder_input"
+                required
+              >
+                <option value="">Select Customer</option>
+                {customerData.map((customer) => (
+                  <option key={customer.CustomerID} value={customer.CustomerID}>
+                    {customer.Name}
+                  </option>
+                ))}
+              </select>
             </label>
-            <select
-              id="customer"
-              value={customer}
-              onChange={(event) => setCustomer(event.target.value)}
-              className="customer-salesorder_input"
-            >
-              {customerdata.map((cust) => (
-                <option key={cust.id} value={cust.name}>
-                  {cust.name}
-                </option>
-              ))}
-            </select>
 
-            <label htmlFor="date" className="date-salesorder_label">
-              Date:
+            <label htmlFor="salesOrderNumber">
+              Sales Order Number:
+              <input
+                type="text"
+                id="salesOrderNumber"
+                name="SalesOrderNumber"
+                value={formData.SalesOrderNumber}
+                onChange={handleInputChange}
+                className="salesorder_input"
+                required
+              />
             </label>
+
+            {/* <label htmlFor="salesDate">
+              Sales Date:
+              <input
+                type="date"
+                id="salesDate"
+                name="SalesDate"
+                value={formData.SalesDate}
+                onChange={handleInputChange}
+                className="salesorder_input"
+                required
+              />
+            </label> */}
+
+            <label htmlFor="salesDate">
+            Sales Date:
             <input
-              type="date"
-              id="date"
-              value={date}
-              onChange={(event) => setDate(event.target.value)}
-              className="date-salesorder_input"
+             type="date"
+             id="salesDate"
+             name="SalesDate"
+            onChange={handleInputChange}
+                className="salesorder_input"
             />
+          </label>
 
-            <label htmlFor="invoice" className="invoice-salesorder_label">
-              Customer PO
-            </label>
-            <select
-              id="invoice"
-              value={invoice}
-              onChange={(event) => setInvoice(event.target.value)}
-              className="invoice-salesorder_input"
-            >
-              <option value="">Select PO</option>
-              <option value="PO123">PO123</option>
-              <option value="PO124">PO124</option>
-              <option value="PO125">PO125</option>
-              <option value="PO126">PO126</option>
-            </select>
-
-            <label htmlFor="status" className="status-salesorder_label">
+            <label htmlFor="status">
               Status:
+              <select
+                id="status"
+                name="Status"
+                value={formData.Status}
+                onChange={handleInputChange}
+                className="status-salesorder_input"
+              >
+                <option >Select Status</option>
+                <option value={1}>Draft</option>
+                <option value={0}>Approved</option>
+              </select>
             </label>
-            <select
-              id="status"
-              value={status}
-              onChange={(event) => setStatus(event.target.value)}
-              className="status-salesorder_input"
-            >
-              <option value="Draft">Draft</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
-            <button
-              type="button"
-              onClick={handleAdd}
-              className="add-item"
-              htmlFor="Add=Item"
-            >
+
+            <button type="button" onClick={handleAdd} className="add-item">
               Add Item
             </button>
           </form>
 
-          <AddSalesItem items={customerPoData} handleDeleteItem={handleDeleteItem} />
+          <AddSalesItem
+            items={salesOrderItems}
+            handleDeleteItem={handleDeleteItem}
+          />
 
-          <div className="savebotton">
-            <button onClick={handleSave} className="btns">
+          <div className="customer-form__button-container">
+            <button
+              type="submit"
+              className="customer-form__button"
+              onClick={handleSubmit}
+            >
               Save
             </button>
-            <button onClick={onClose} className="btns">
+            <button
+              type="button"
+              onClick={onClose}
+              className="customer-form__button"
+            >
               Cancel
             </button>
           </div>

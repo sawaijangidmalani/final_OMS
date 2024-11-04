@@ -12,49 +12,17 @@ import axios from "axios";
 import { Tooltip, Pagination, Modal, Popconfirm } from "antd";
 import "../Style/Manage.css";
 
-function ManageSupplier() {
+function ManageSuppliers() {
   const [suppliers, setSuppliers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [visible, setVisible] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingSuppliers, setEditingSuppliers] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(8);
+  const [pageSize] = useState(4);
   const [filteredSuppliers, setFilteredSuppliers] = useState([]);
-
-  const [sortConfig, setSortConfig] = useState({ key: "", order: "asc" });
-
-  useEffect(() => {
-    const fetchSuppliers = async () => {
-      try {
-        const { data } = await axios.get(
-          "https://final-oms.onrender.com/supplier/getSuppliers"
-        );
-        if (data?.status) {
-          setSuppliers(data.data);
-          setFilteredSuppliers(data.data);
-        } else {
-          alert("Failed to fetch supplier data");
-        }
-      } catch (e) {
-        console.error(e);
-        alert("An error occurred while fetching the supplier data");
-      }
-    };
-
-    fetchSuppliers();
-  }, []);
-
-  const handleSearch = () => {
-    const filtered = suppliers.filter(
-      (supplier) =>
-        supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        supplier.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        supplier.phone.includes(searchTerm)
-    );
-    setFilteredSuppliers(filtered);
-    setCurrentPage(1);
-  };
+  const [sortField, setSortField] = useState("");
+  const [sortOrder, setSortOrder] = useState("asc");
 
   const handleInputChange = (e) => {
     const value = e.target.value;
@@ -68,31 +36,55 @@ function ManageSupplier() {
     }
   };
 
-  const handleSort = (key) => {
-    const newOrder = sortConfig.order === "asc" ? "desc" : "asc";
-    setSortConfig({ key, order: newOrder });
+  const handleSearch = () => {
+    const filtered = suppliers.filter((supplier) => {
+      const name = supplier.Name ? supplier.Name.toLowerCase() : "";
+      const email = supplier.Email ? supplier.Email.toLowerCase() : "";
+      const phone = supplier.Phone ? supplier.Phone : "";
 
-    const sortedSuppliers = [...filteredSuppliers].sort((a, b) => {
-      if (a[key] < b[key]) return newOrder === "asc" ? -1 : 1;
-      if (a[key] > b[key]) return newOrder === "asc" ? 1 : -1;
-      return 0;
+      return (
+        name.includes(searchTerm.toLowerCase()) ||
+        email.includes(searchTerm.toLowerCase()) ||
+        phone.includes(searchTerm)
+      );
     });
 
-    setFilteredSuppliers(sortedSuppliers);
+    setFilteredSuppliers(filtered);
+    setCurrentPage(1);
   };
+
+  useEffect(() => {
+    const fetchSuppliers = async () => {
+      try {
+        const result = await axios.get(
+          "http://localhost:8000/supplier/getSupplierData"
+        );
+
+        setSuppliers(result.data);
+        setFilteredSuppliers(result.data);
+      } catch (err) {
+        console.error("Error fetching supplier data:", err);
+      }
+    };
+
+    fetchSuppliers();
+  }, []);
 
   const handleDelete = (email) => {
     axios
-      .delete("https://final-oms.onrender.com/supplier/deleteSupplier", {
+      .delete(`http://localhost:8000/supplier/deleteSupplier`, {
         data: { email },
       })
       .then(() => {
         alert("Supplier deleted successfully");
-        setSuppliers((prev) => prev.filter((s) => s.email !== email));
-        setFilteredSuppliers((prev) => prev.filter((s) => s.email !== email));
+        setSuppliers(suppliers.filter((supplier) => supplier.email !== email));
+        setFilteredSuppliers(
+          filteredSuppliers.filter((supplier) => supplier.email !== email)
+        );
+        window.location.reload();
       })
-      .catch((error) => {
-        console.error("There was an error deleting the supplier!", error);
+      .catch((err) => {
+        console.log(err);
       });
   };
 
@@ -115,31 +107,57 @@ function ManageSupplier() {
   };
 
   const updateSupplierList = (newSupplier) => {
-    setSuppliers((prev) =>
-      editingSuppliers
-        ? prev.map((s) => (s.id === newSupplier.id ? newSupplier : s))
-        : [...prev, newSupplier]
-    );
-    setFilteredSuppliers((prev) =>
-      editingSuppliers
-        ? prev.map((s) => (s.id === newSupplier.id ? newSupplier : s))
-        : [...prev, newSupplier]
-    );
+    setSuppliers((prevSuppliers) => {
+      if (editingSuppliers) {
+        return prevSuppliers.map((supplier) =>
+          supplier.SupplierID === newSupplier.SupplierID
+            ? newSupplier
+            : supplier
+        );
+      } else {
+        return [...prevSuppliers, newSupplier];
+      }
+    });
+
+    setFilteredSuppliers((prevSuppliers) => {
+      if (editingSuppliers) {
+        return prevSuppliers.map((supplier) =>
+          supplier.SupplierID === newSupplier.SupplierID
+            ? newSupplier
+            : supplier
+        );
+      } else {
+        return [...prevSuppliers, newSupplier];
+      }
+    });
+
     setShowModal(false);
   };
 
-  const startIndex = (currentPage - 1) * pageSize;
-  const paginatedSuppliers = filteredSuppliers.slice(
-    startIndex,
-    startIndex + pageSize
-  );
+  const handleSort = (field) => {
+    const order = sortField === field && sortOrder === "asc" ? "desc" : "asc";
+    setSortField(field);
+    setSortOrder(order);
 
-  const getSortArrow = (key) => {
-    if (sortConfig.key === key) {
-      return sortConfig.order === "asc" ? <BiUpArrowAlt /> : <BiDownArrowAlt />;
+    const sortedSuppliers = [...filteredSuppliers].sort((a, b) => {
+      if (a[field] < b[field]) return order === "asc" ? -1 : 1;
+      if (a[field] > b[field]) return order === "asc" ? 1 : -1;
+      return 0;
+    });
+    setFilteredSuppliers(sortedSuppliers);
+  };
+  const getSortArrow = (field) => {
+    if (sortField === field) {
+      return sortOrder === "asc" ? <BiUpArrowAlt /> : <BiDownArrowAlt />;
     }
     return null;
   };
+
+  const startIndex = (currentPage - 1) * pageSize;
+  const currentData = filteredSuppliers.slice(
+    startIndex,
+    startIndex + pageSize
+  );
 
   return (
     <>
@@ -170,34 +188,34 @@ function ManageSupplier() {
           <table className="table table-bordered table-striped table-hover shadow">
             <thead className="table-secondary">
               <tr>
-                <th onClick={() => handleSort("name")}>
-                  Name {getSortArrow("name")}
+                <th onClick={() => handleSort("Name")}>
+                  Name {getSortArrow("Name")}
                 </th>
-                <th onClick={() => handleSort("email")}>
-                  Email {getSortArrow("email")}
+                <th onClick={() => handleSort("Email")}>
+                  Email {getSortArrow("Email")}
                 </th>
-                <th onClick={() => handleSort("phone")}>
-                  Phone {getSortArrow("phone")}
-                </th>
-
-                <th onClick={() => handleSort("area")}>
-                  Area {getSortArrow("area")}
+                <th onClick={() => handleSort("Phone")}>
+                  Phone {getSortArrow("Phone")}
                 </th>
 
-                <th onClick={() => handleSort("status")}>
-                  Status {getSortArrow("status")}
+                <th onClick={() => handleSort("Area")}>
+                  Area {getSortArrow("Area")}
+                </th>
+
+                <th onClick={() => handleSort("Status")}>
+                  Status {getSortArrow("Status")}
                 </th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              {paginatedSuppliers.map((supplier) => (
-                <tr key={supplier.email}>
-                  <td>{supplier.name}</td>
-                  <td>{supplier.email}</td>
-                  <td>{supplier.phone}</td>
-                  <td>{supplier.area}</td>
-                  <td>{supplier.status}</td>
+              {currentData.map((supplier) => (
+                <tr key={supplier.Email}>
+                  <td>{supplier.Name}</td>
+                  <td>{supplier.Email}</td>
+                  <td>{supplier.Phone}</td>
+                  <td>{supplier.Area}</td>
+                  <td>{supplier.Status === 1 ? "Active" : "Inactive"}</td>{" "}
                   <td>
                     <div className="buttons-group">
                       <Tooltip
@@ -226,7 +244,7 @@ function ManageSupplier() {
                         <Popconfirm
                           placement="topLeft"
                           description="Are you sure to delete this supplier?"
-                          onConfirm={() => handleDelete(supplier.email)}
+                          onConfirm={() => handleDelete(supplier.Email)}
                           okText="Delete"
                         >
                           <button className="btns2">
@@ -270,4 +288,4 @@ function ManageSupplier() {
   );
 }
 
-export default ManageSupplier;
+export default ManageSuppliers;

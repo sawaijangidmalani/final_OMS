@@ -66,63 +66,70 @@ const Button = styled.button`
 `;
 
 function Home() {
-  const [name, setName] = useState({ email: "", password: "" });
+  const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [error, setError] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
+  // Clear form on component mount
   useEffect(() => {
-    setName({ email: "", password: "" });
+    setCredentials({ email: "", password: "" });
   }, []);
 
+  // Form validation
   const validForm = () => {
     let valid = true;
-    const newError = { ...error };
-    if (name.email.trim() === "") {
+    const newError = { email: "", password: "" };
+
+    // Validate email
+    if (credentials.email.trim() === "") {
       newError.email = "*Email is required";
       valid = false;
-    } else {
-      newError.email = "";
     }
-    if (name.password.trim() === "") {
+
+    // Validate password
+    if (credentials.password.trim() === "") {
       newError.password = "*Password is required";
       valid = false;
-    } else {
-      newError.password = "";
     }
+
     setError(newError);
     return valid;
   };
 
+  // Handle input changes
   const inputEvent = (e) => {
-    const { value, name: inputName } = e.target;
-    setName((prevValue) => ({
-      ...prevValue,
-      [inputName]: value,
-    }));
+    const { value, name } = e.target;
+    setCredentials((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Toggle password visibility
   const togglePasswordVisibility = () => {
-    setShowPassword((prevShowPassword) => !prevShowPassword);
+    setShowPassword((prev) => !prev);
   };
 
-  const onSubmits = async (e) => {
+  // Handle form submission
+  const onSubmit = async (e) => {
     e.preventDefault();
     if (validForm()) {
+      console.log("Submitting login form with:", credentials); // Check the console output
+
       try {
-        const { data } = await axios.post(
-          "https://final-oms.onrender.com/auth/login",
-          name
-        );
-        console.log(data);
+        const { data } = await axios.post("http://localhost:8000/auth/login", {
+          email: credentials.email,
+          password: credentials.password,
+        });
+        alert("User Login Successfully", data); // Log the response
         if (data?.result) {
           navigate("/dashboard");
         } else {
           alert("Incorrect email or password");
         }
-        console.log(data.result);
       } catch (error) {
-        console.error(error);
+        console.error(
+          "Error logging in:",
+          error.response ? error.response.data : error
+        );
         alert("An error occurred while logging in");
       }
     }
@@ -141,15 +148,15 @@ function Home() {
                 style={{ width: "80%", height: "80vh" }}
               />
             </div>
-            <Form onSubmit={onSubmits}>
-              {/* <h2>Sign-in</h2> */}
+            <Form onSubmit={onSubmit}>
+              <h2>Sign-in</h2>
               <InputGroup>
                 <Input
                   type="email"
                   placeholder="Email"
                   name="email"
                   onChange={inputEvent}
-                  value={name.email}
+                  value={credentials.email}
                 />
                 <MdEmail className="icon" />
               </InputGroup>
@@ -160,7 +167,7 @@ function Home() {
                   placeholder="Password"
                   name="password"
                   onChange={inputEvent}
-                  value={name.password}
+                  value={credentials.password}
                 />
                 {showPassword ? (
                   <Icon onClick={togglePasswordVisibility}>
