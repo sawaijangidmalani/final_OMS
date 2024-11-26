@@ -1,6 +1,8 @@
+import { Input } from "antd";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import styled from "styled-components";
+import { BiSearch } from "react-icons/bi";
 
 // function isDateString(dateString) {
 //   return !isNaN(Date.parse(dateString));
@@ -14,12 +16,6 @@ function getTodayDate() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-const StyledDiv = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
-
 const StyledDv = styled.div`
   display: flex;
   align-items: center;
@@ -28,27 +24,9 @@ const StyledDv = styled.div`
   gap: 10px;
 `;
 
-const StyledLabel = styled.label`
-  font-size: 16px;
-  margin: 10px;
-`;
-
 const StyledTable = styled.table`
   width: 370px;
   font-size: 18px;
-`;
-
-const StyledInput = styled.input`
-  width: 100px;
-  height: 40px;
-  background-color: white;
-  color: #333;
-  padding-left: 10px;
-  font-size: 16px;
-  border: none;
-  border-radius: 5px;
-  margin: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
 const ButtonContainer = styled.div`
@@ -77,52 +55,6 @@ const StyledButton = styled.button`
   }
 `;
 
-const DropdownContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  position: relative;
-`;
-
-const DropdownButton = styled.button`
-  width: 200px;
-  height: 40px;
-  background-color: white;
-  color: #333;
-  padding-left: 10px;
-  font-size: 16px;
-  border: none;
-  border-radius: 5px;
-  margin: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  text-align: left;
-  cursor: pointer;
-
-  &:focus {
-    outline: none;
-  }
-`;
-
-const DropdownOptions = styled.div`
-  position: absolute;
-  width: 200px;
-  max-height: 150px;
-  overflow-y: auto;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 1;
-`;
-
-const Option = styled.div`
-  padding: 10px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #f0f0f0;
-  }
-`;
-
 function Dashboard() {
   const [purchase, setItem] = useState([]);
   const [sales, setSale] = useState([]);
@@ -147,9 +79,7 @@ function Dashboard() {
         console.error("Error fetching customer POs:", error);
       });
     axios
-      .get(
-        "http://localhost:8000/customerPo/getRemainingPurchaseOrder"
-      )
+      .get("http://localhost:8000/customerPo/getRemainingPurchaseOrder")
       .then((res) => {
         if (res.data.success) {
           setRem(res.data.data);
@@ -163,12 +93,13 @@ function Dashboard() {
         setRem([]);
       });
   }, []);
-  const purchaseAmount = purchase.reduce((total, po) => {
-    return (
-      total + po.item.reduce((itemTotal, item) => itemTotal + item.price, 0)
-    );
-  }, 0);
 
+  // const purchaseAmount = purchase.reduce((total, po) => {
+  //   return (
+  //     total + po.item.reduce((itemTotal, item) => itemTotal + item.price, 0)
+  //   );
+  // }, 0);
+  
   const orderAmount = sales.reduce(
     (total, sale) => total + (parseFloat(sale.cost) || 0),
     0
@@ -226,78 +157,89 @@ function Dashboard() {
     <>
       <div className="container">
         <h1>Dashboard - Profit & Loss</h1>
-        <StyledDiv>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <DropdownContainer>
-              <DropdownButton onClick={toggleDropdownCustomer}>
+        <div className="StyledDiv">
+          <div className="LeftContainer">
+            <div className="dropdowncontainer">
+              <div className="StyledIn" onClick={toggleDropdownCustomer}>
                 {selectedCustomer || "Customer Name"}
-              </DropdownButton>
+              </div>
               {dropdownOpenCustomer && (
-                <DropdownOptions>
+                <div className="dropdownoption">
                   {sales.map((sale) => (
-                    <Option
+                    <div
+                      className="option"
                       key={sale.id}
                       onClick={() => handleCustomerSelect(sale.des)}
                     >
                       {sale.des}
-                    </Option>
+                    </div>
                   ))}
-                </DropdownOptions>
+                </div>
               )}
-            </DropdownContainer>
-            <StyledLabel htmlFor="orderDate">Order Date:</StyledLabel>
-            <StyledInput
-              type="date"
-              id="orderDate"
-              onChange={handleDateChange}
-              max={todayDate}
-            />
-            To
-            <StyledInput
-              type="date"
-              id="endDate"
-              onChange={handleDateChange}
-              max={todayDate}
-            />
-            <DropdownContainer>
-              <DropdownButton onClick={toggleDropdownCustomerPO}>
+            </div>
+            <div className="dropdowncontainer">
+              <div className="StyledIn" onClick={toggleDropdownCustomerPO}>
                 {selectedCustomerPO || "Customer PO"}
-              </DropdownButton>
+              </div>
               {dropdownOpenCustomerPO && (
-                <DropdownOptions>
+                <div className="dropdownoption">
                   {sales.map((sale) => (
-                    <Option
+                    <div
+                      className="option"
                       key={sale.id}
                       onClick={() => handleCustomerPOSelect(sale.des)}
                     >
                       {sale.des}
-                    </Option>
+                    </div>
                   ))}
-                </DropdownOptions>
+                </div>
               )}
-            </DropdownContainer>
-            <DropdownContainer>
-              <DropdownButton onClick={toggleDropdownPO}>
+            </div>
+            <div className="dropdowncontainer">
+              <div className="StyledIn" onClick={toggleDropdownPO}>
                 {selectedPO || "Purchase Order"}
-              </DropdownButton>
+              </div>
               {dropdownOpenPO && (
-                <DropdownOptions>
+                <div className="dropdownoption">
                   {purchase.map((item) => (
-                    <Option
+                    <div
+                      className="option"
                       key={item.id}
                       onClick={() => handlePOSelect(item.des)}
                     >
                       {item.des}
-                    </Option>
+                    </div>
                   ))}
-                </DropdownOptions>
+                </div>
               )}
-            </DropdownContainer>
+            </div>
+            Start Date
+            <input
+              type="date"
+              id="orderDate"
+              onChange={handleDateChange}
+              max={todayDate}
+              className="StyledIn"
+            />
+            End Date
+            <input
+              type="date"
+              id="endDate"
+              onChange={handleDateChange}
+              max={todayDate}
+              className="StyledIn"
+            />
           </div>
-          <ButtonContainer>
-            <StyledButton>Search</StyledButton>
-          </ButtonContainer>
-        </StyledDiv>
+
+          <button
+            className="StyledButtonSearch"
+            // onClick={handleSearch}
+            style={{ marginLeft: "10px" }}
+          >
+            <BiSearch />
+            Search
+          </button>
+        </div>
 
         <StyledDv>
           <div className="tables">
@@ -354,7 +296,7 @@ function Dashboard() {
                 ))}
               </tbody>
             </StyledTable>
-            <h3>Purchase Amount: {purchaseAmount.toFixed(2)}</h3>
+            {/* <h3>Purchase Amount: {purchaseAmount.toFixed(2)}</h3> */}
           </div>
           <div>
             <h3>Remaining Purchase Order</h3>
@@ -382,7 +324,7 @@ function Dashboard() {
           </div>
         </StyledDv>
 
-        <h2>Profit/Loss: {(orderAmount - purchaseAmount).toFixed(2)}</h2>
+        {/* <h2>Profit/Loss: {(orderAmount - purchaseAmount).toFixed(2)}</h2> */}
       </div>
     </>
   );

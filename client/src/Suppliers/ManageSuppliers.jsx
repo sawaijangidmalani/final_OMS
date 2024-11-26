@@ -19,7 +19,7 @@ function ManageSuppliers() {
   const [showModal, setShowModal] = useState(false);
   const [editingSuppliers, setEditingSuppliers] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(4);
+  const [pageSize] = useState(5);
   const [filteredSuppliers, setFilteredSuppliers] = useState([]);
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
@@ -215,7 +215,7 @@ function ManageSuppliers() {
                   <td>{supplier.Email}</td>
                   <td>{supplier.Phone}</td>
                   <td>{supplier.Area}</td>
-                  <td>{supplier.Status === 1 ? "Active" : "Inactive"}</td>{" "}
+                  <td>{supplier.Status === 1 ? "Active" : "Inactive"}</td>
                   <td>
                     <div className="buttons-group">
                       <Tooltip

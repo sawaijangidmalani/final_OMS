@@ -19,7 +19,7 @@ function ManageCustomer() {
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(4);
+  const [pageSize] = useState(5);
   const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
@@ -214,7 +214,7 @@ function ManageCustomer() {
                   <td>{customer.Email}</td>
                   <td>{customer.Phone}</td>
                   <td>{customer.Area}</td>
-                  <td>{customer.Status === 1 ? "Active" : "Inactive"}</td>{" "}
+                  <td>{customer.Status === 1 ? "Active" : "Inactive"}</td>
                   <td>
                     <div className="buttons-group">
                       <Tooltip

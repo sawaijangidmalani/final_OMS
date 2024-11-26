@@ -4,17 +4,19 @@ import AddSalesItem from "./AddSalesItem";
 import AddOrEditCustomer from "./AddorEditCustomer";
 import axios from "axios";
 import "../Style/Add.css";
+import { toast } from "react-hot-toast";
 
-const SalesOrder = ({ onClose }) => {
+const SalesOrder = ({ onClose, existingOrder }) => {
   const [customerData, setCustomerData] = useState([]);
   const [formData, setFormData] = useState({
     CustomerID: "",
-    ProviderID:  "1",
+    ProviderID: "1",
     SalesOrderNumber: "",
     SalesDate: "",
     Status: "",
     SalesTotalPrice: 0.0,
   });
+
   const [salesOrderItems, setSalesOrderItems] = useState([]);
   const [addClick, setAddClick] = useState(false);
 
@@ -25,9 +27,26 @@ const SalesOrder = ({ onClose }) => {
       );
       setCustomerData(res.data);
     };
-
     fetchCustomerData();
   }, []);
+
+  useEffect(() => {
+    if (existingOrder) {
+      setFormData({
+        CustomerID: existingOrder.CustomerID,
+        ProviderID: "1",
+        SalesOrderNumber: existingOrder.SalesOrderNumber,
+        SalesDate: existingOrder.SalesDate
+          ? existingOrder.SalesDate.slice(0, 10)
+          : "",
+        Status: existingOrder.Status,
+        SalesTotalPrice: existingOrder.SalesTotalPrice,
+      });
+      setSalesOrderItems(existingOrder.items || []);
+    } else {
+      resetForm();
+    }
+  }, [existingOrder]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -52,20 +71,31 @@ const SalesOrder = ({ onClose }) => {
     event.preventDefault();
     const data = {
       ...formData,
+      Items: salesOrderItems,
     };
 
     try {
-      await axios.post(
-        "http://localhost:8000/customerpo/insertCustomerPo",
-        data
-      );
-      alert("Sales Order created successfully!");
+      if (existingOrder && existingOrder.CustomerID) {
+        await axios.put(
+          `http://localhost:8000/customerpo/updateCustomerPo/${formData.SalesOrderNumber}`,
+          data
+        );
+        alert("Sales Order updated successfully!");
+        // toast.success("Sales Order updated successfully!");
+      } else {
+        await axios.post(
+          "http://localhost:8000/customerpo/insertCustomerPo",
+          data
+        );
+        // toast.success("Sales Order created successfully!");
+        alert("Sales Order Saved successfully!");
+      }
       window.location.reload();
       onClose();
       resetForm();
     } catch (err) {
       console.error(
-        "Error creating sales order:",
+        "Error handling sales order:",
         err.response ? err.response.data : err.message
       );
     }
@@ -79,6 +109,7 @@ const SalesOrder = ({ onClose }) => {
 
   const handleAdd = () => {
     setAddClick(true);
+    resetForm();
   };
 
   const handleCancel = () => {
@@ -92,7 +123,7 @@ const SalesOrder = ({ onClose }) => {
       ProviderID: "1",
       SalesOrderNumber: "",
       SalesDate: "",
-      Status: 1,
+      Status: "",
       SalesTotalPrice: 0.0,
     });
     setSalesOrderItems([]);
@@ -108,9 +139,9 @@ const SalesOrder = ({ onClose }) => {
       ) : (
         <>
           <form onSubmit={handleSubmit} className="salesorder-form">
-            <h3 className="salesorder-form-heading">Add / Edit Sales Order</h3>
+            <h3 className="salesorder-form-heading">Add / Edit Customer PO</h3>
 
-            <label htmlFor="customer">
+            <label htmlFor="customer" className="salesorder-form-label">
               Customer:
               <select
                 id="customer"
@@ -129,8 +160,8 @@ const SalesOrder = ({ onClose }) => {
               </select>
             </label>
 
-            <label htmlFor="salesOrderNumber">
-              Sales Order Number:
+            <label htmlFor="salesOrderNumber" className="salesorder-form-label">
+              Customer PO:
               <input
                 type="text"
                 id="salesOrderNumber"
@@ -142,8 +173,8 @@ const SalesOrder = ({ onClose }) => {
               />
             </label>
 
-            {/* <label htmlFor="salesDate">
-              Sales Date:
+            <label htmlFor="salesDate" className="salesorder-form-label">
+              Date:
               <input
                 type="date"
                 id="salesDate"
@@ -153,20 +184,9 @@ const SalesOrder = ({ onClose }) => {
                 className="salesorder_input"
                 required
               />
-            </label> */}
+            </label>
 
-            <label htmlFor="salesDate">
-            Sales Date:
-            <input
-             type="date"
-             id="salesDate"
-             name="SalesDate"
-            onChange={handleInputChange}
-                className="salesorder_input"
-            />
-          </label>
-
-            <label htmlFor="status">
+            <label htmlFor="status" className="salesorder-form-label">
               Status:
               <select
                 id="status"
@@ -174,8 +194,9 @@ const SalesOrder = ({ onClose }) => {
                 value={formData.Status}
                 onChange={handleInputChange}
                 className="status-salesorder_input"
+                required
               >
-                <option >Select Status</option>
+                <option value="">Select Status</option>
                 <option value={1}>Draft</option>
                 <option value={0}>Approved</option>
               </select>

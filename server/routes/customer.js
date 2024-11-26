@@ -3,7 +3,6 @@ import pool from "../utils/db.js";
 
 const router = express.Router();
 
-// Add a new customer
 router.post("/add_customer", async (req, res) => {
   const formData = req.body;
   const sql = `
@@ -46,7 +45,7 @@ router.get("/getCustomerData", async (req, res) => {
   }
 });
 
-// Route to delete a customer by email
+
 router.delete("/deleteCustomer", async (req, res) => {
   const { email } = req.body;
   const sql = "DELETE FROM customers WHERE Email = ?";

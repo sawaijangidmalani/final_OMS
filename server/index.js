@@ -7,7 +7,6 @@ import { supplierRouter } from "./routes/suppliers.js";
 import { itemRouter } from "./routes/item.js";
 import { porouter } from "./routes/purchaseorder.js";
 import { customerPo } from "./routes/customerpo.js";
-// import { itempriceRouter } from "./routes/itemPrice.js";
 import { itempriceRouter } from "./routes/itemPrice.js";
 
 dotenv.config();
@@ -22,7 +21,6 @@ app.use("/supplier", supplierRouter);
 app.use("/item", itemRouter);
 app.use("/po", porouter);
 app.use("/customerPo", customerPo);
-// app.use("/itemPrice", itempriceRouter);
 app.use("/itemPrice", itempriceRouter);
 
 const PORT = process.env.PORT || 8000;

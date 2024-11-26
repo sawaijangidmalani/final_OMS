@@ -25,7 +25,7 @@ function ManageItem() {
   const [isSupplierDropdownOpen, setIsSupplierDropdownOpen] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(4);
+  const [pageSize] = useState(5);
   const [searchTermItem, setSearchTermItem] = useState("");
   const [searchTermSupplier, setSearchTermSupplier] = useState("");
   const [filteredItems, setFilteredItems] = useState([]);
@@ -51,6 +51,7 @@ function ManageItem() {
     setSelectedItemId(item.ItemID);
     setShowStocks(true);
   };
+
   const handleInputChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
@@ -179,6 +180,7 @@ function ManageItem() {
     setIsItemDropdownOpen(!isItemDropdownOpen);
     setIsSupplierDropdownOpen(false);
   };
+  
 
   const handleAddItem = () => {
     setEditItem(null);
@@ -332,7 +334,7 @@ function ManageItem() {
                   <td>{item.Brand}</td>
                   <td>{item.Stock}</td>
                   <td>{item.UnitName}</td>
-                  <td>{item.Status === 1 ? "Active" : "Inactive"}</td>{" "}
+                  <td>{item.Status === 1 ? "Active" : "Inactive"}</td>
                   <td>
                     <div className="buttons-group">
                       <Tooltip

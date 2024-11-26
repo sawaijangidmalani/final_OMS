@@ -13,10 +13,8 @@ const Modal = styled.div`
 `;
 
 function AddCustomer({
-  customers,
   closeModal,
   editingCustomer,
-  updateCustomerList,
 }) {
   const navigate = useNavigate();
   const modalRef = useRef();

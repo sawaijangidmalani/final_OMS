@@ -1,67 +1,180 @@
-import React from "react";
+import { useState, useEffect } from "react";
 import { BiEdit, BiTrash } from "react-icons/bi";
-import styled from "styled-components";
+import axios from "axios";
+import "../Style/Customer.css";
+import { Tooltip, Popconfirm, Pagination } from "antd";
+import AddOrEdit from "./AddOrEdit";
 
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-`;
+function AddPurchaseItem() {
+  const [itemsData, setItemsData] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(4);
+  const [editingItem, setEditingItem] = useState(null);
 
-const Th = styled.th`
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
-`;
+  useEffect(() => {
+    fetchItemsData();
+  }, []);
 
-const Td = styled.td`
-  border: 1px solid #ddd;
-  padding: 8px;
-`;
+  const fetchItemsData = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:8000/po/getpurchaseorderitems"
+      );
+      if (res.data && res.data.data) {
+        setItemsData(res.data.data);
+        calculateTotal(res.data.data);
+      } else {
+        console.error("No data found in the response.");
+        setItemsData([]);
+      }
+    } catch (err) {
+      console.error("Error fetching items data:", err);
+      setItemsData([]);
+    }
+  };
 
-const Tr = styled.tr`
-  &:nth-child(even) {
-    background-color: #f2f2f2;
-  }
-`;
-const HeadTr = styled(Tr)`
-  background-color: #5c9c5e;
-  color: white;
-`;
+  const calculateTotal = (items) => {
+    const newTotal = items.reduce((acc, item) => {
+      const unitCost = parseFloat(item.UnitCost) || 0;
+      const tax = parseFloat(item.Tax) || 0;
+      const purchaseQty = parseFloat(item.PurchaseQty) || 0;
 
-function AddPurchaseItem({ purchaseItems }) {
+      const itemTotal = purchaseQty * (unitCost + (unitCost * tax) / 100);
+      return acc + itemTotal;
+    }, 0);
+
+    setTotal(newTotal.toFixed(2));
+  };
+
+  const handleDelete = async (itemID) => {
+    try {
+      await axios.delete(`http://localhost:8000/po/deleteItem/${itemID}`);
+      fetchItemsData();
+      alert("Item deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      alert("Error deleting item! Please try again.");
+    }
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleUpdate = (item) => {
+    setEditingItem(item);
+  };
+
+  const paginatedData = itemsData.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
   return (
-    <Table>
-      <thead>
-        <HeadTr>
-          <Th>Item</Th>
-          <Th>Qty</Th>
-          <Th>Unit Cost</Th>
-          <Th>Purchase Price</Th>
-          <Th>Invoice No</Th>
-          <Th>Invoice Date</Th>
-          <Th>Action</Th>
-          <Td></Td>
-        </HeadTr>
-      </thead>
-      <tbody>
-        {purchaseItems.map((item, index) => (
-          <Tr key={index}>
-            <Td>{item.customer}</Td>
-            <Td>{item.qtyAllocated}</Td>
-            <Td>{item.price}</Td>
-            <Td>{item.singleQuantityPrice}</Td>
-            <Td>{item.invoice}</Td>
-            <Td>{item.date}</Td>
-            <Td>
-              <button className="btns"><BiEdit /></button>
-              <button className="btns"><BiTrash /></button>
-            </Td>
-          </Tr>
-        ))}
-      </tbody>
-    </Table>
+    <div className="table-responsive">
+      <table className="table table-bordered table-striped table-hover shadow">
+        <thead className="table-secondary">
+          <tr>
+            <th>Item</th>
+            <th>Qty</th>
+            <th>Unit Cost</th>
+            <th>Purchase Price</th>
+            <th>Invoice No</th>
+            <th>Invoice Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {paginatedData.map((item, index) => (
+            <tr key={index}>
+              <td>{item.ItemName}</td>
+              <td>{item.PurchaseQty}</td>
+              <td>{item.UnitCost}</td>
+              <td>{item.PurchasePrice}</td>
+              <td>{item.InvoiceNumber}</td>
+
+              <td>{new Date(item.InvoiceDate).toLocaleDateString()}</td>
+              <td>
+                <div className="buttons-group">
+                  <Tooltip
+                    title="Edit"
+                    overlayInnerStyle={{
+                      backgroundColor: "rgb(41, 10, 244)",
+                      color: "white",
+                      borderRadius: "5px",
+                    }}
+                  >
+                    <button
+                      className="btns1"
+                      onClick={() => handleUpdate(item)}
+                    >
+                      <BiEdit />
+                    </button>
+                  </Tooltip>
+                  <Tooltip
+                    title="Delete"
+                    overlayInnerStyle={{
+                      backgroundColor: "rgb(244, 10, 10)",
+                      color: "white",
+                      borderRadius: "5px",
+                    }}
+                  >
+                    <Popconfirm
+                      placement="topLeft"
+                      description="Are you sure to delete this item?"
+                      onConfirm={() => handleDelete(item.ItemID)}
+                      okText="Delete"
+                    >
+                      <button className="btns2">
+                        <BiTrash />
+                      </button>
+                    </Popconfirm>
+                  </Tooltip>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <Pagination
+        current={currentPage}
+        pageSize={pageSize}
+        total={itemsData.length}
+        onChange={handlePageChange}
+      />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <p>
+          <b>Purchase Total:</b>{" "}
+          <span style={{ paddingLeft: "15px" }}>{total}</span>
+        </p>
+        <p>
+          <b>Sales Total:</b>{" "}
+          <span style={{ paddingLeft: "15px" }}>{total}</span>
+        </p>
+        <p>
+          <b>Profit/Loss:</b>{" "}
+          <span style={{ paddingLeft: "15px" }}>{total}</span>
+        </p>
+      </div>
+
+      {editingItem && (
+        <AddOrEdit
+          onClose={() => setEditingItem(false)}
+          onPurchaseOrderItemData={fetchItemsData}
+          refreshItemsData={fetchItemsData}
+          itemToEdit={editingItem}
+        />
+      )}
+    </div>
   );
 }
 
 export default AddPurchaseItem;
-

@@ -5,200 +5,238 @@ import styled from "styled-components";
 const Modal = styled.div`
   position: fixed;
   z-index: 100;
-  top: 5%;
+  top: 20%;
   left: 35%;
   border-radius: 20px;
 `;
 
-const AddOrEditCustomer = ({ onPurchaseData, onClose }) => {
-  const [products, setProducts] = useState([]); 
-  const [selectedProduct, setSelectedProduct] = useState(null); 
+const AddorEditCustomer = ({
+  onClose,
+  onSalesOrderItemData,
+  refreshItemsData,
+  itemToEdit,
+}) => {
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [salesQty, setSalesQty] = useState("");
+  const [unitCost, setUnitCost] = useState("");
+  const [salesPrice, setSalesPrice] = useState("");
+  const [tax, setTax] = useState("");
 
   useEffect(() => {
-    axios.get("http://localhost:8000/item/getItems")
-      .then((res) => {
-        setProducts(res.data.data); 
-        console.log(res.data.data); 
-      })
-      .catch(err => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/item/getItems");
+        setProducts(res.data.data);
+      } catch (err) {
         console.error("Error fetching products:", err);
-      });
+      }
+    };
+    fetchProducts();
   }, []);
 
-  const [customer, setCustomer] = useState("");
-  const [availableQty, setAvailableQty] = useState("");
-  const [qtyAllocated, setQtyAllocated] = useState("");
-  const [remainingQty, setRemainingQty] = useState("");
-  const [invoice, setInvoice] = useState("");
-  const [date, setDate] = useState("");
+  useEffect(() => {
+    if (itemToEdit && products.length > 0) {
+      setSelectedProduct(products.find((p) => p.ItemID === itemToEdit.ItemID));
+      setSalesQty(itemToEdit.SalesQty);
+      setUnitCost(itemToEdit.UnitCost);
+      setSalesPrice(itemToEdit.SalesPrice);
+      setTax(itemToEdit.Tax);
+    }
+  }, [itemToEdit, products]);
 
   const handleProductChange = (event) => {
     const productName = event.target.value;
-    setCustomer(productName);
-
-    const product = products.find((p) => p.name === productName);
-    
+    const product = products.find((p) => p.Name === productName);
     if (product) {
-      setAvailableQty(product.quantity || "");
-      setQtyAllocated(""); 
-      setRemainingQty(product.quantity || "");
       setSelectedProduct(product);
+      setUnitCost(product.UnitCost || 0);
+      setSalesPrice(product.SalesPrice || 0);
     }
   };
 
-  const handleQtyAllocatedChange = (event) => {
-    const allocatedQty = parseInt(event.target.value, 10);
-    setQtyAllocated(allocatedQty);
-
-    if (selectedProduct) {
-      const calculatedRemainingQty = (selectedProduct.quantity || 0) - allocatedQty;
-      setRemainingQty(calculatedRemainingQty >= 0 ? calculatedRemainingQty : 0);
-    }
+  const calculateSalesPrice = (qty, cost, tax) => {
+    return (qty * cost * (1 + tax / 100)).toFixed(2);
   };
 
-  
+  const handleSalesQtyChange = (e) => {
+    const qty = e.target.value;
+    setSalesQty(qty);
+    setSalesPrice(calculateSalesPrice(qty, unitCost, tax));
+  };
+
+  const handleUnitCostChange = (e) => {
+    const cost = e.target.value;
+    setUnitCost(cost);
+    setSalesPrice(calculateSalesPrice(salesQty, cost, tax));
+  };
+
+  const handleTaxChange = (e) => {
+    const taxValue = e.target.value;
+    setTax(taxValue);
+    setSalesPrice(calculateSalesPrice(salesQty, unitCost, taxValue));
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
-    
-    // Calculate remainingTotalCost
-    const remainingTotalCost = remainingQty * (selectedProduct?.price || 0);
-  
-    const item = {
-      customer,
-      availableQty,
-      qtyAllocated,
-      remainingQty,
-      remainingTotalCost, 
-      invoice,
-      date,
+
+    const salesOrderItem = {
+      ItemID: selectedProduct?.ItemID || null,
+      SalesQty: parseFloat(salesQty) || 0,
+      UnitCost: parseFloat(unitCost) || 0,
+      SalesPrice: parseFloat(salesPrice) || 0,
+      Tax: parseFloat(tax) || 0,
+      CustomerSalesOrderID: 1,
     };
-  
-    console.log("param");
-    onPurchaseData(item);
-  
-    setCustomer("");
-    setAvailableQty("");
-    setQtyAllocated("");
-    setRemainingQty("");
-    setInvoice("");
-    setDate("");
-    console.log(item);
-  
-    await axios.post("http://localhost:8000/customerPo/insertCustomerPo", item)
-      .then((res) => {
-        console.log(res);
-      })
-      .then(() => {
-        alert("PO inserted");
-      });
+
+    try {
+      let response;
+
+      if (itemToEdit && itemToEdit.ItemID) {
+        response = await axios.put(
+          "http://localhost:8000/customerpo/editcustomersalesorderitems",
+          {
+            ...salesOrderItem,
+            ItemID: itemToEdit.ItemID,
+          }
+        );
+
+        if (response.status === 200) {
+          alert(response.data.message || "Item updated successfully.");
+        }
+      } else {
+        // Add new item
+        response = await axios.post(
+          "http://localhost:8000/customerpo/addcustomersalesorderitems",
+          salesOrderItem
+        );
+        console.log("Add Response:", response.data);
+
+        if (response.status === 201) {
+          alert(response.data.message || "Item added successfully.");
+        }
+      }
+
+      onSalesOrderItemData(salesOrderItem);
+      refreshItemsData();
+
+      setSelectedProduct(null);
+      setSalesQty("");
+      setUnitCost("");
+      setSalesPrice("");
+      setTax("");
+      onClose();
+    } catch (error) {
+      console.error("Error submitting sales order item:", error);
+      alert("Error: " + error.message);
+    }
   };
-  
 
   return (
-    <div>
-      <div className="style-model">
-        <Modal>
-        <div className="body-container">
+    <Modal>
+      <div className="body-container">
         <form onSubmit={handleSubmit} className="customer-form">
-        <h3 className="form-heading">Add / Edit Item</h3>
-        
-        <label className="customer-form__label">
-          Item Name:
-        
-        <select
-          id="customer"
-          value={customer}
-          onChange={handleProductChange}
-          className="customer-form__input"
-        >
-          <option value="">Select a Product</option>
-          {products.map((product, index) => (
-            <option key={index} value={product.Name}>
-              {product.Name}
-            </option>
-          ))}
-        </select>
-        </label>
-        
-        <label htmlFor="availableQty" className="availableQty-salesorder_label">
-          Available Qty:
-        </label>
-        <input
-          type="number"
-          id="availableQty"
-          value={availableQty}
-          readOnly
-          className="availableQty-salesorder_input"
-        />
-        
-        <label htmlFor="qtyAllocated" className="qtyAllocated-salesorder_label">
-          Qty Allocated:
-        </label>
-        <input
-          type="number"
-          id="qtyAllocated"
-          value={qtyAllocated}
-          onChange={handleQtyAllocatedChange}
-          className="qtyAllocated-salesorder_input"
-        />
-        
-        <label htmlFor="remainingQty" className="remainingQty-salesorder_label">
-          Remaining Qty:
-        </label>
-        <input
-          type="number"
-          id="remainingQty"
-          value={remainingQty}
-          readOnly
-          className="remainingQty-salesorder_input"
-        />
-        
-        <label htmlFor="invoice" className="remainingQty-salesorder_label">
-          Invoice Number:
-        </label>
-        <input
-          type="number"
-          id="invoice"
-          value={invoice}
-          onChange={(event) => setInvoice(event.target.value)}
-          className="remainingQty-salesorder_input"
-        />
-        
-        <label htmlFor="date" className="remainingQty-salesorder_label">
-          Invoice Date
-        </label>
-        <input
-          type="date"
-          id="date"
-          value={date}
-          onChange={(event) => setDate(event.target.value)}
-          className="remainingQty-salesorder_input"
-        />
+          <h3 className="form-heading">
+            {itemToEdit ? "Edit" : "Add"} Sales Order Item
+          </h3>
 
-    
-<div className="customer-form__button-container">
-                  <button
-                    type="submit"
-                    value="submit"
-                    className="customer-form__button"
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="customer-form__button"
-                  >
-                    Cancel
-                  </button>
-                </div>
+          <label htmlFor="item" className="customer-form__label">
+            Item:
+            <select
+              id="item"
+              value={selectedProduct?.Name || ""}
+              onChange={handleProductChange}
+              className="customer-form__input"
+              required
+            >
+              <option value="">Select an Item</option>
+              {products.map((product) => (
+                <option key={product.ItemID} value={product.Name}>
+                  {product.Name}
+                </option>
+              ))}
+            </select>
+          </label>
 
-      </form>
+          <label htmlFor="quantity" className="customer-form__label">
+            Quantity:
+            <input
+              id="quantity"
+              type="number"
+              value={salesQty}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value >= 1) {
+                  handleSalesQtyChange(e);
+                }
+              }}
+              className="customer-form__input"
+              required
+            />
+          </label>
+
+          <label htmlFor="unitCost" className="customer-form__label">
+            Unit Cost:
+            <input
+              id="unitCost"
+              type="number"
+              value={unitCost}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value >= 1) {
+                  handleUnitCostChange(e);
+                }
+              }}
+              className="customer-form__input"
+              required
+            />
+          </label>
+
+          <label htmlFor="tax" className="customer-form__label">
+            Tax (%):
+            <input
+              id="tax"
+              type="number"
+              value={tax}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value >= 1) {
+                  handleTaxChange(e);
+                }
+              }}
+              className="customer-form__input"
+              required
+            />
+          </label>
+
+          <label htmlFor="salesPrice" className="customer-form__label">
+            Sales Price:
+            <input
+              id="salesPrice"
+              type="number"
+              value={salesPrice}
+              readOnly
+              className="customer-form__input"
+              required
+            />
+          </label>
+
+          <div className="customer-form__button-container">
+            <button type="submit" className="customer-form__button">
+              Save
+            </button>
+            <button
+              type="button"
+              className="customer-form__button"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
-      </Modal>
-      </div>
-    </div>
+    </Modal>
   );
 };
 
-export default AddOrEditCustomer;
+export default AddorEditCustomer;

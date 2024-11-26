@@ -20,12 +20,14 @@ import ItemPrice from "./Item-Master/ItemPrice";
 // import EditItemPrice from "./ItemStockMaster/EditItemPrice";
 import Home from "./pages/Home";
 import ManageCPO from "./Sales-Order/ManageCPO";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
     <>
       <BrowserRouter>
         <GlobalStyle />
+        <Toaster/>
         <Routes>
           <Route path="/" exact element={<Home />} />
           <Route path="/signin" element={<Signin />} />
@@ -41,6 +43,7 @@ function App() {
             {/* <Route path="/addcustomer" element={<AddCustomer />} /> */}
             {/* <Route path="/itemstock" element={<ManageItemStock />} /> */}
             {/* <Route path="/itemstock/editprice" element={<EditItemPrice />} /> */}
+            
           </Route>
         </Routes>
       </BrowserRouter>

@@ -90,6 +90,7 @@ h3 {
 .table-responsive {
   width: 100%;
   overflow-x: auto;
+  padding: 15px;
 }
 
 .table-bordered {

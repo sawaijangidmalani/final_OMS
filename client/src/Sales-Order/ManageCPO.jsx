@@ -1,357 +1,26 @@
-// import React, { useState, useEffect } from "react";
-// import styled from "styled-components";
-// import SalesOrder from "./SalesOrder";
-// import { BiEdit, BiTrash } from "react-icons/bi";
-// import EditCustomerPO from "./EditCustomePO";
-// import axios from "axios";
-// import "../Style/Customer.css";
-
-// const Modal = styled.div`
-//   position: absolute;
-//   top: 45%;
-//   left: 50%;
-//   background-color: #eceeef;
-//   height: auto;
-//   position: absolute;
-//   box-shadow: 0 5px 7px rgba(0, 0, 0, 0.2);
-//   border-radius: 10px;
-// `;
-
-// const StyledModel = styled.div`
-//   position: fixed;
-//   background-color: rgba(0, 0, 0, 0.5);
-//   position: fixed;
-//   z-index: 100;
-//   top: 5%;
-//   left: 35%;
-//   border-radius: 20px;
-// `;
-
-// const StyledLabel = styled.label`
-//   font-size: 16px;
-//   margin: 10px;
-// `;
-
-// const StyledInput = styled.input`
-//   width: 200px;
-//   height: 40px;
-//   background-color: white;
-//   color: #333;
-//   padding-left: 10px;
-//   font-size: 16px;
-//   border: none;
-//   border-radius: 5px;
-//   margin: 10px;
-//   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-// `;
-
-// function ManageCPO() {
-//   const [customers, setCustomers] = useState();
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [dropdownOpen, setDropdownOpen] = useState(false);
-//   const [invoices, setInvoices] = useState();
-//   const [customerPOs, setCustomerPOs] = useState();
-//   const [showModal, setShowModal] = useState(false);
-//   const [selectedDate, setSelectedDate] = useState("");
-//   const [selectedCustomer, setSelectedCustomer] = useState();
-//   const [selectedCustomerPO, setSelectedCustomerPO] = useState();
-//   const [salesData, setSalesData] = useState([]);
-//   const [dropdownOpenCustomerPO, setDropdownOpenCustomerPO] = useState(false);
-//   const [selectedSaleIndex, setSelectedSaleIndex] = useState(null);
-//   const [newCustomer, setNewCustomer] = useState({
-//     id: "",
-//     name: "",
-//     email: "",
-//     phone: "",
-//     area: "",
-//     status: "Active",
-//   });
-//   console.log(salesData);
-
-//   useEffect(() => {
-//     const fetchData = async () => {
-//       try {
-//         const storedSalesData = localStorage.getItem("salesData");
-
-//         if (storedSalesData) {
-//           setSalesData(JSON.parse(storedSalesData));
-//         }
-
-//         const response = await axios.get(
-//           "http://localhost:8000/customerpo/getCustomerPo"
-//         );
-//         const fetchedData = response.data;
-
-//         setSalesData(fetchedData);
-//         localStorage.setItem("salesData", JSON.stringify(fetchedData));
-//       } catch (error) {
-//         console.error("Error fetching sales data:", error);
-
-//         if (error.response) {
-//           console.error("Server Response:", error.response.data);
-//           console.error("Status Code:", error.response.status);
-//         } else if (error.request) {
-//           console.error("Request Info:", error.request);
-//         } else {
-//           console.error("Error Message:", error.message);
-//         }
-//       }
-//     };
-
-//     fetchData();
-//   }, []);
-
-//   const handleDateChange = (event) => {
-//     setSelectedDate(event.target.value);
-//   };
-
-//   const handleCustomerChange = (event) => {
-//     setSelectedCustomer(event.target.value);
-//   };
-
-//   const handleCustomerPOChange = (event) => {
-//     setSelectedCustomerPO(event.target.value);
-//   };
-
-//   const handleSearch = () => {};
-
-//   const handleSaleOrder = () => {
-//     setSelectedSaleIndex(null);
-//     setShowModal(true);
-//   };
-
-//   const handleSalesData = (data) => {
-//     if (selectedSaleIndex !== null) {
-//       const updatedSalesData = [...salesData];
-//       updatedSalesData[selectedSaleIndex] = data;
-//       setSalesData(updatedSalesData);
-//       setSelectedSaleIndex(null);
-//     } else {
-//       setSalesData([...salesData, data]);
-//     }
-//     setShowModal(false);
-//   };
-
-//   const handleEdit = (index) => {
-//     setSelectedSaleIndex(index);
-//     setShowModal(true);
-//   };
-
-//   const handleDelete = (index) => {
-//     const updatedSalesData = [...salesData];
-//     updatedSalesData.splice(index, 1);
-//     setSalesData(updatedSalesData);
-//   };
-
-//   const handleNewCustomerChange = (e) => {
-//     const { name, value } = e.target;
-//     setNewCustomer({ ...newCustomer, [name]: value });
-//   };
-
-//   const addCustomer = (customerName) => {
-//     const newCustomer = {
-//       id: customers.length + 1,
-//       name: customerName,
-//       email: "",
-//       phone: "",
-//       area: "",
-//       status: "Active",
-//     };
-//     setCustomers([...customers, newCustomer]);
-//   };
-
-//   const addInvoice = (invoiceNumber) => {
-//     setInvoices([...invoices, invoiceNumber]);
-//   };
-
-//   const handleClose = () => {
-//     setShowModal(false);
-//   };
-
-//   const toggleDropdown = () => {
-//     setDropdownOpen(!dropdownOpen);
-//   };
-
-//   const handleOptionClick = (option) => {
-//     setSearchTerm(option);
-//     setDropdownOpen(false);
-//   };
-
-//   const toggleDropdownCustomerPO = () => {
-//     setDropdownOpenCustomerPO(!dropdownOpenCustomerPO);
-//   };
-
-//   const handleCustomerPOSelect = (customerPO) => {
-//     setSelectedCustomerPO(customerPO);
-//     setDropdownOpenCustomerPO(false);
-//   };
-
-//   return (
-//     <>
-//       <div className="container">
-//         <h1>Manage Customer PO</h1>
-//         <div className="StyledDiv">
-//           <div className="LeftContainer">
-//             <div className="dropdowncontainer">
-//               <button className="dropdownbutton" onClick={toggleDropdown}>
-//                 {selectedCustomer || "Customer Name"}
-//               </button>
-
-//               {dropdownOpen && (
-//                 <div className="dropdownoption">
-//                   {customers.map((customer) => (
-//                     <div
-//                       className="option"
-//                       key={customer.CustomerID}
-//                       onClick={() => handleOptionClick(customer.Name)}
-//                     >
-//                       {customer.Name}
-//                     </div>
-//                   ))}
-//                 </div>
-//               )}
-//             </div>
-
-//             <div className="dropdowncontainer">
-//               <button
-//                 className="dropdownbutton"
-//                 onClick={toggleDropdownCustomerPO}
-//               >
-//                 {selectedCustomerPO || "Customer PO"}
-//               </button>
-//               {dropdownOpenCustomerPO && (
-//                 <div className="dropdownoption">
-//                   {customerPOs.map((customerPO, index) => (
-//                     <div
-//                       className="option"
-//                       key={index}
-//                       onClick={() => handleCustomerPOSelect(customerPO)}
-//                     >
-//                       {customerPO}
-//                     </div>
-//                   ))}
-//                 </div>
-//               )}
-//               <label htmlFor="orderDate">
-//                 Order Date:
-//                 <input
-//                   className="StyledIn"
-//                   type="date"
-//                   id="orderDate"
-//                   value={selectedDate}
-//                   onChange={handleDateChange}
-//                 />
-//               </label>
-
-//               <button className="StyledButtonSearch" onClick={handleSearch}>
-//                 Search
-//               </button>
-//             </div>
-
-//             <div className="RightContainer">
-//               <button className="StyledButtonAdd" onClick={handleSaleOrder}>
-//                 Add Cus. PO
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-
-//         <div className="table-responsive">
-//           <h3>Customer PO List</h3>
-//           <table className="table table-bordered table-striped table-hover shadow">
-//             <thead className="table-secondary">
-//               <tr>
-//                 <th>Customer Name</th>
-//                 <th>Customer PO</th>
-//                 <th>Date</th>
-//                 <th>Total</th>
-//                 <th>Status</th>
-//                 <th>Action</th>
-//               </tr>
-//             </thead>
-//             <tbody>
-//               {salesData.map((item, itemIndex) => (
-//                 <tr key={itemIndex}>
-//                   <td>{item.CustomerID}</td>
-//                   <td>{item.SalesOrderNumber}</td>
-//                   <td>{item.SalesDate}</td>
-//                   <td>{item.SalesTotalPrice}</td>
-//                   <td>{item.Status === 1 ? "Draft" : "Approval"}</td>
-//                   <td>
-//                     <div className="buttons-group">
-//                       <button
-//                         onClick={() => handleEdit(index)}
-//                         className="btns1"
-//                       >
-//                         <BiEdit />
-//                       </button>
-//                       <button
-//                         onClick={() => handleDelete(index)}
-//                         className="btns2"
-//                       >
-//                         <BiTrash />
-//                       </button>
-//                     </div>
-//                   </td>
-//                 </tr>
-//               ))}
-//             </tbody>
-//           </table>
-//         </div>
-//         {showModal && (
-//           <StyledModel>
-//             <Modal>
-//               {selectedSaleIndex !== null ? (
-//                 <EditCustomerPO
-//                   onSalesData={handleSalesData}
-//                   saleData={salesData[selectedSaleIndex]}
-//                   customers={customers}
-//                 />
-//               ) : (
-//                 <SalesOrder
-//                   onSalesData={handleSalesData}
-//                   addCustomer={addCustomer}
-//                   addInvoice={addInvoice}
-//                   onClose={handleClose}
-//                 />
-//               )}
-//             </Modal>
-//           </StyledModel>
-//         )}
-//       </div>
-//     </>
-//   );
-// }
-
-// export default ManageCPO;
-
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import SalesOrder from "./SalesOrder";
-import { BiEdit, BiTrash } from "react-icons/bi";
-import EditCustomerPO from "./EditCustomePO";
 import axios from "axios";
 import "../Style/Customer.css";
-import { BiSearch, BiAddToQueue } from "react-icons/bi";
-import { Tooltip, Popconfirm } from "antd";
+import {
+  BiEdit,
+  BiTrash,
+  BiSearch,
+  BiAddToQueue,
+  BiUpArrowAlt,
+  BiDownArrowAlt,
+} from "react-icons/bi";
+import { Tooltip, Popconfirm, Pagination } from "antd";
 
 const Modal = styled.div`
   position: absolute;
-  top: 45%;
-  left: 50%;
+  top: 3%;
+  left: 30%;
   background-color: #eceeef;
   height: auto;
   box-shadow: 0 5px 7px rgba(0, 0, 0, 0.2);
   border-radius: 10px;
-`;
-
-const StyledModel = styled.div`
-  position: fixed;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 100;
-  top: 5%;
-  left: 35%;
-  border-radius: 20px;
 `;
 
 function ManageCPO() {
@@ -367,7 +36,10 @@ function ManageCPO() {
   const [selectedSaleIndex, setSelectedSaleIndex] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownOpenCustomerPO, setDropdownOpenCustomerPO] = useState(false);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(5);
+  const [sortField, setSortField] = useState("");
+  const [sortOrder, setSortOrder] = useState("asc");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -375,10 +47,18 @@ function ManageCPO() {
         const response = await axios.get(
           "http://localhost:8000/customerpo/getCustomerPo"
         );
-        setSalesData(response.data);
-        setFilteredData(response.data); 
-        setCustomers(response.data.map((item) => item.CustomerID)); 
-        setCustomerPOs(response.data.map((item) => item.SalesOrderNumber)); 
+
+        const updatedData = response.data.map((item) => ({
+          ...item,
+          CustomerName: item.CustomerName,
+        }));
+
+        setSalesData(updatedData);
+        setFilteredData(updatedData);
+        setCustomers([
+          ...new Set(updatedData.map((item) => item.CustomerName)),
+        ]);
+        setCustomerPOs(updatedData.map((item) => item.SalesOrderNumber));
       } catch (error) {
         console.error("Error fetching sales data:", error);
       }
@@ -386,8 +66,12 @@ function ManageCPO() {
     fetchData();
   }, []);
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
   const handleDelete = async (index) => {
-    const customerSalesOrderID = filteredData[index].CustomerSalesOrderID; 
+    const customerSalesOrderID = filteredData[index].CustomerSalesOrderID;
 
     try {
       const response = await fetch(
@@ -418,6 +102,34 @@ function ManageCPO() {
     }
   };
 
+  const handleSort = (field) => {
+    const order = sortField === field && sortOrder === "asc" ? "desc" : "asc";
+    setSortField(field);
+    setSortOrder(order);
+
+    const sortedData = [...filteredData].sort((a, b) => {
+      if (a[field] === undefined || b[field] === undefined) return 0;
+
+      if (typeof a[field] === "string" && typeof b[field] === "string") {
+        return order === "asc"
+          ? a[field].localeCompare(b[field])
+          : b[field].localeCompare(a[field]);
+      } else {
+        return order === "asc" ? a[field] - b[field] : b[field] - a[field];
+      }
+    });
+
+    setFilteredData(sortedData);
+    setCurrentPage(1);
+  };
+
+  const getSortArrow = (field) => {
+    if (sortField === field) {
+      return sortOrder === "asc" ? <BiUpArrowAlt /> : <BiDownArrowAlt />;
+    }
+    return null;
+  };
+
   const handleStartDateChange = (e) => setStartDate(e.target.value);
   const handleEndDateChange = (e) => setEndDate(e.target.value);
 
@@ -443,7 +155,6 @@ function ManageCPO() {
       return;
     }
 
-    // Apply date filter
     if (startDate && endDate) {
       filtered = filtered.filter((item) => {
         const saleDate = new Date(item.SalesDate);
@@ -451,14 +162,12 @@ function ManageCPO() {
       });
     }
 
-    // Apply customer filter
     if (selectedCustomer) {
       filtered = filtered.filter(
-        (item) => item.CustomerID === selectedCustomer
+        (item) => item.CustomerName === selectedCustomer
       );
     }
 
-    // Apply customer PO filter
     if (selectedCustomerPO) {
       filtered = filtered.filter(
         (item) => item.SalesOrderNumber === selectedCustomerPO
@@ -466,12 +175,18 @@ function ManageCPO() {
     }
 
     setFilteredData(filtered);
+    setCurrentPage(1);
   };
 
-  const handleEdit = (index) => {
-    setSelectedSaleIndex(index);
+  const handleEdit = (item) => {
+    setSelectedSaleIndex(item);
     setShowModal(true);
   };
+
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   const handleClose = () => setShowModal(false);
 
@@ -499,11 +214,7 @@ function ManageCPO() {
             )}
           </div>
           <div className="dropdowncontainer">
-            <button
-              // className="dropdownbutton"
-              className="StyledIn"
-              onClick={toggleDropdownCustomerPO}
-            >
+            <button className="StyledIn" onClick={toggleDropdownCustomerPO}>
               {selectedCustomerPO || "Select CPO"}
             </button>
             {dropdownOpenCustomerPO && (
@@ -520,14 +231,14 @@ function ManageCPO() {
               </div>
             )}
           </div>
-          Start Date:
+          Order Date:
           <input
             type="date"
             value={startDate}
             onChange={handleStartDateChange}
             className="StyledIn"
           />
-          End Date:
+          To
           <input
             type="date"
             value={endDate}
@@ -555,27 +266,35 @@ function ManageCPO() {
       </div>
 
       <div className="table-responsive">
-        <h3>Customer PO List</h3>
+        <h2>Customer PO List</h2>
         <table className="table table-bordered table-striped table-hover shadow">
           <thead className="table-secondary">
             <tr>
-              <th>Customer Name</th>
-              <th>Customer PO</th>
-              <th>Date</th>
-              <th>Total</th>
+              <th onClick={() => handleSort("CustomerName")}>
+                Customer Name {getSortArrow("CustomerName")}
+              </th>
+              <th onClick={() => handleSort("SalesOrderNumber")}>
+                Customer PO {getSortArrow("SalesOrderNumber")}
+              </th>
+              <th onClick={() => handleSort("SalesDate")}>
+                Sales Date {getSortArrow("SalesDate")}
+              </th>
+              <th onClick={() => handleSort("SalesTotalPrice")}>
+                Sales Total Price {getSortArrow("SalesTotalPrice")}
+              </th>
               <th>Status</th>
-              <th>Action</th>
+              <th>Actions</th>
             </tr>
           </thead>
+
           <tbody>
-            {filteredData.map((item, index) => (
+            {paginatedData.map((item, index) => (
               <tr key={index}>
-                <td>{item.CustomerID}</td>
+                <td>{item.CustomerName}</td>
                 <td>{item.SalesOrderNumber}</td>
-                {/* <td>{item.SalesDate}</td> */}
                 <td>{new Date(item.SalesDate).toLocaleDateString()}</td>
                 <td>{item.SalesTotalPrice}</td>
-                <td>{item.Status === 1 ? "Draft" : "Approval"}</td>
+                <td>{item.Status === 1 ? "Draft" : "Approved"}</td>
                 <td>
                   <div className="buttons-group">
                     <Tooltip
@@ -587,13 +306,12 @@ function ManageCPO() {
                       }}
                     >
                       <button
-                        onClick={() => handleEdit(index)}
+                        onClick={() => handleEdit(item)}
                         className="btns1"
                       >
                         <BiEdit />
                       </button>
                     </Tooltip>
-
                     <Tooltip
                       title="Delete"
                       overlayInnerStyle={{
@@ -621,33 +339,22 @@ function ManageCPO() {
         </table>
       </div>
 
+      <Pagination
+        current={currentPage}
+        pageSize={pageSize}
+        total={filteredData.length}
+        onChange={handlePageChange}
+      />
       {showModal && (
-        <StyledModel>
+        <div className="stylemodal">
           <Modal>
-            {selectedSaleIndex !== null ? (
-              <EditCustomerPO
-                onSalesData={(data) => {
-                  const updatedSalesData = [...salesData];
-                  updatedSalesData[selectedSaleIndex] = data;
-                  setSalesData(updatedSalesData);
-                  setFilteredData(updatedSalesData);
-                  setShowModal(false);
-                }}
-                saleData={salesData[selectedSaleIndex]}
-              />
-            ) : (
-              <SalesOrder
-                onSalesData={(data) => {
-                  const newSalesData = [...salesData, data];
-                  setSalesData(newSalesData);
-                  setFilteredData(newSalesData);
-                  setShowModal(false);
-                }}
-                onClose={handleClose}
-              />
-            )}
+            <SalesOrder
+              onClose={handleClose}
+              existingOrder={selectedSaleIndex}
+              salesData={salesData}
+            />
           </Modal>
-        </StyledModel>
+        </div>
       )}
     </div>
   );
