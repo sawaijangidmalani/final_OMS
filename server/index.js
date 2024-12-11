@@ -12,7 +12,13 @@ import { itempriceRouter } from "./routes/itemPrice.js";
 dotenv.config();
 const app = express();
 
-app.use(cors({ origin: 'https://final-oms-1.onrender.com' }));
+// app.use(cors({ origin: '*' }));
+
+app.use(cors({
+  origin: 'https://final-oms-1.onrender.com', 
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+  credentials: true, 
+}));
 app.use(express.json());
 
 app.use("/auth", authRoutes);
