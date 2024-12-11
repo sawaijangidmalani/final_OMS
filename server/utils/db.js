@@ -13,9 +13,6 @@ async function createDBConnection() {
       port: process.env.DB_PORT,      
       connectionLimit: 10
     });
-console.log(process.env.DB_HOST);
-console.log(process.env.DB_DBNAME);
-console.log(process.env.DB_PORT)
 
     console.log("DB Connected");
     return pool;
