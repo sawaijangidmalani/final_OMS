@@ -1,24 +1,27 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import styled from "styled-components";
+import toast from "react-hot-toast";
 
 const Modal = styled.div`
   position: fixed;
   z-index: 100;
-  top: 20%;
+  top: 10%;
   left: 35%;
   border-radius: 20px;
 `;
 
 const AddorEditCustomer = ({
+  selectedSaleId,
   onClose,
-  onSalesOrderItemData,
-  refreshItemsData,
   itemToEdit,
+  availableQTY,
 }) => {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [salesQty, setSalesQty] = useState("");
+  const [availableQty, setAvailableQty] = useState(availableQTY);
+  const [allocatedQty, setAllocatedQty] = useState("");
+  const [remainingQty, setRemainingQty] = useState("");
   const [unitCost, setUnitCost] = useState("");
   const [salesPrice, setSalesPrice] = useState("");
   const [tax, setTax] = useState("");
@@ -37,11 +40,16 @@ const AddorEditCustomer = ({
 
   useEffect(() => {
     if (itemToEdit && products.length > 0) {
-      setSelectedProduct(products.find((p) => p.ItemID === itemToEdit.ItemID));
-      setSalesQty(itemToEdit.SalesQty);
-      setUnitCost(itemToEdit.UnitCost);
-      setSalesPrice(itemToEdit.SalesPrice);
-      setTax(itemToEdit.Tax);
+      const product = products.find((p) => p.ItemID === itemToEdit.ItemID);
+      if (product) {
+        setSelectedProduct(product);
+        setAvailableQty(product.Stock || 0);
+        setAllocatedQty(itemToEdit.AllocatedQty || 0);
+        setRemainingQty((product.Stock || 0) - (itemToEdit.AllocatedQty || 0));
+        setUnitCost(itemToEdit.UnitCost || 0);
+        setSalesPrice(itemToEdit.SalesPrice || 0);
+        setTax(itemToEdit.Tax || 0);
+      }
     }
   }, [itemToEdit, products]);
 
@@ -50,6 +58,9 @@ const AddorEditCustomer = ({
     const product = products.find((p) => p.Name === productName);
     if (product) {
       setSelectedProduct(product);
+      setAvailableQty(product.Stock);
+      setAllocatedQty(0);
+      setRemainingQty(product.Stock || 0);
       setUnitCost(product.UnitCost || 0);
       setSalesPrice(product.SalesPrice || 0);
     }
@@ -59,76 +70,83 @@ const AddorEditCustomer = ({
     return (qty * cost * (1 + tax / 100)).toFixed(2);
   };
 
-  const handleSalesQtyChange = (e) => {
-    const qty = e.target.value;
-    setSalesQty(qty);
+  const handleAllocatedQtyChange = (e) => {
+    const qty = parseFloat(e.target.value) || 0;
+    setAllocatedQty(qty);
+    setRemainingQty((availableQty || 0) - qty);
     setSalesPrice(calculateSalesPrice(qty, unitCost, tax));
   };
 
   const handleUnitCostChange = (e) => {
-    const cost = e.target.value;
+    const cost = parseFloat(e.target.value) || 0;
     setUnitCost(cost);
-    setSalesPrice(calculateSalesPrice(salesQty, cost, tax));
+    setSalesPrice(calculateSalesPrice(allocatedQty, cost, tax));
   };
 
   const handleTaxChange = (e) => {
-    const taxValue = e.target.value;
+    const taxValue = parseFloat(e.target.value) || 0;
     setTax(taxValue);
-    setSalesPrice(calculateSalesPrice(salesQty, unitCost, taxValue));
+    setSalesPrice(calculateSalesPrice(allocatedQty, unitCost, taxValue));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    if (!selectedProduct) {
+      toast.error("Please select a product.");
+      return;
+    }
+
     const salesOrderItem = {
+      CustomerSalesOrderItemID: itemToEdit?.CustomerSalesOrderItemID || null,
+      CustomerSalesOrderID: selectedSaleId,
       ItemID: selectedProduct?.ItemID || null,
-      SalesQty: parseFloat(salesQty) || 0,
+      AllocatedQty: parseFloat(allocatedQty) || 0,
       UnitCost: parseFloat(unitCost) || 0,
       SalesPrice: parseFloat(salesPrice) || 0,
       Tax: parseFloat(tax) || 0,
-      CustomerSalesOrderID: 1,
     };
+
+    
+    console.log("Item to Edit:", itemToEdit);
+  
+
+
 
     try {
       let response;
-
-      if (itemToEdit && itemToEdit.ItemID) {
+      if (itemToEdit) {
         response = await axios.put(
-          "http://localhost:8000/customerpo/editcustomersalesorderitems",
-          {
-            ...salesOrderItem,
-            ItemID: itemToEdit.ItemID,
-          }
-        );
-
-        if (response.status === 200) {
-          alert(response.data.message || "Item updated successfully.");
-        }
-      } else {
-        // Add new item
-        response = await axios.post(
-          "http://localhost:8000/customerpo/addcustomersalesorderitems",
+          "http://localhost:8000/customerpo/editsalesorderitem",
           salesOrderItem
         );
-        console.log("Add Response:", response.data);
-
-        if (response.status === 201) {
-          alert(response.data.message || "Item added successfully.");
-        }
+      } else {
+        response = await axios.post(
+          "http://localhost:8000/customerpo/addsalesorderitems",
+          salesOrderItem
+        );
       }
 
-      onSalesOrderItemData(salesOrderItem);
-      refreshItemsData();
+      if (response.status === 201 || response.status === 200) {
+        const successMessage = itemToEdit
+          ? "Item updated successfully!"
+          : "Item added successfully!";
+        toast.success(successMessage);
+      } else {
+        toast.error("Failed to save item.");
+      }
 
       setSelectedProduct(null);
-      setSalesQty("");
+      setAllocatedQty("");
+      setAvailableQty("");
+      setRemainingQty("");
       setUnitCost("");
       setSalesPrice("");
       setTax("");
       onClose();
     } catch (error) {
       console.error("Error submitting sales order item:", error);
-      alert("Error: " + error.message);
+      toast.error("Error: " + error.message);
     }
   };
 
@@ -139,7 +157,6 @@ const AddorEditCustomer = ({
           <h3 className="form-heading">
             {itemToEdit ? "Edit" : "Add"} Sales Order Item
           </h3>
-
           <label htmlFor="item" className="customer-form__label">
             Item:
             <select
@@ -158,20 +175,37 @@ const AddorEditCustomer = ({
             </select>
           </label>
 
-          <label htmlFor="quantity" className="customer-form__label">
-            Quantity:
+          <label htmlFor="availableQty" className="customer-form__label">
+            Available Qty:
             <input
-              id="quantity"
               type="number"
-              value={salesQty}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value >= 1) {
-                  handleSalesQtyChange(e);
-                }
-              }}
+              id="availableQty"
+              value={availableQty}
+              readOnly
+              className="customer-form__input"
+            />
+          </label>
+
+          <label htmlFor="allocatedQty" className="customer-form__label">
+            Allocated Qty:
+            <input
+              id="allocatedQty"
+              type="number"
+              value={allocatedQty || ""}
+              onChange={handleAllocatedQtyChange}
               className="customer-form__input"
               required
+            />
+          </label>
+
+          <label htmlFor="remainingQty" className="customer-form__label">
+            Remaining Qty:
+            <input
+              id="remainingQty"
+              type="number"
+              value={remainingQty}
+              readOnly
+              className="customer-form__input"
             />
           </label>
 
@@ -181,12 +215,7 @@ const AddorEditCustomer = ({
               id="unitCost"
               type="number"
               value={unitCost}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value >= 1) {
-                  handleUnitCostChange(e);
-                }
-              }}
+              onChange={handleUnitCostChange}
               className="customer-form__input"
               required
             />
@@ -198,12 +227,7 @@ const AddorEditCustomer = ({
               id="tax"
               type="number"
               value={tax}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value >= 1) {
-                  handleTaxChange(e);
-                }
-              }}
+              onChange={handleTaxChange}
               className="customer-form__input"
               required
             />

@@ -28,22 +28,23 @@ router.get("/supplier/getSupplierData", async (req, res) => {
 });
 
 router.get("/getItems", async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 20 } = req.query;
   const offset = (page - 1) * limit;
 
   const query = `
-    SELECT 
-      i.ItemID, i.Name, i.Category, i.Brand, 
-      i.Status, i.Description, 
-      u.UnitName AS UnitName,
-      i.ItemUnitID,
-      s.Name AS SupplierName,
-      i.SupplierID
-    FROM items i
-    JOIN itemunits u ON i.ItemUnitID = u.ItemUnitID
-    JOIN suppliers s ON i.SupplierID = s.SupplierID
-    LIMIT ? OFFSET ?;
-  `;
+  SELECT 
+    i.ItemID, i.Name, i.Category, i.Brand, 
+    i.Status, i.Description, 
+    u.UnitName AS UnitName,
+    i.ItemUnitID,
+    s.Name AS SupplierName,
+    i.SupplierID,
+    i.Stock  -- Add this line to fetch Stock
+  FROM items i
+  JOIN itemunits u ON i.ItemUnitID = u.ItemUnitID
+  JOIN suppliers s ON i.SupplierID = s.SupplierID
+  LIMIT ? OFFSET ?;
+`;
 
   const countQuery = "SELECT COUNT(*) as totalItems FROM items;";
 
@@ -85,6 +86,7 @@ router.post("/add_items", async (req, res) => {
     Status,
     Description,
     ItemUnitID,
+    Stock,
   } = req.body;
 
   if (!SupplierID || !Name || !Category || !Brand || !Status || !ItemUnitID) {
@@ -95,8 +97,8 @@ router.post("/add_items", async (req, res) => {
 
   const sql = `
   INSERT INTO items 
-  (ProviderID, SupplierID, Name, Category, Brand, Status, Description, ItemUnitID) 
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  (ProviderID, SupplierID, Name, Category, Brand, Status, Description, ItemUnitID, Stock) 
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
 
   const values = [
@@ -108,6 +110,7 @@ router.post("/add_items", async (req, res) => {
     Status,
     Description,
     ItemUnitID,
+    Stock,
   ];
 
   try {
@@ -121,7 +124,6 @@ router.post("/add_items", async (req, res) => {
   }
 });
 
-
 router.post("/updateItems", async (req, res) => {
   const {
     SupplierID,
@@ -131,10 +133,9 @@ router.post("/updateItems", async (req, res) => {
     Status,
     Description,
     ItemUnitID,
-    ItemID, 
+    ItemID,
   } = req.body;
 
- 
   const sql = `
     UPDATE Items
     SET SupplierID = ?, Name = ?, Category = ?, Brand = ?, Status = ?, Description = ?, ItemUnitID = ?
@@ -150,10 +151,9 @@ router.post("/updateItems", async (req, res) => {
       Status,
       Description,
       ItemUnitID,
-      ItemID, 
+      ItemID,
     ]);
-    
-  
+
     res.json({
       status: result.affectedRows > 0,
       message:
@@ -166,7 +166,6 @@ router.post("/updateItems", async (req, res) => {
     res.status(500).json({ status: false, message: "Error updating Item" });
   }
 });
-
 
 router.delete("/deleteItems", async (req, res) => {
   const { ItemID } = req.body;

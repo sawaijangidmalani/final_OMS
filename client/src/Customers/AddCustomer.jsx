@@ -3,6 +3,7 @@ import styled from "styled-components";
 import "../Style/Add.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const Modal = styled.div`
   position: fixed;
@@ -32,6 +33,8 @@ function AddCustomer({
     Status: "",
     GST: "",
   };
+
+  console.log(initialData);
 
   const [formData, setFormData] = useState({ ...initialData });
   const [showForm, setShowForm] = useState(true);
@@ -77,13 +80,17 @@ function AddCustomer({
     axios
       .post(apiUrl, formData)
       .then((response) => {
-        alert(
+        // alert(
+        //   editingCustomer
+        //     ? "Customer updated successfully"
+        //     : "Customer saved successfully"
+        // );
+        toast.success(
           editingCustomer
-            ? "Customer updated successfully"
+          ? "Customer updated successfully"
             : "Customer saved successfully"
-        );
+        )
         window.location.reload();
-        navigate("/customer");
       })
       .catch((error) => {
         alert("Something went wrong. Try again.");

@@ -11,6 +11,7 @@ import { MdDelete } from "react-icons/md";
 import axios from "axios";
 import { Tooltip, Pagination, Modal, Popconfirm } from "antd";
 import "../Style/Customer.css";
+import toast from "react-hot-toast";
 
 function ManageCustomer() {
   const [customers, setCustomers] = useState([]);
@@ -75,7 +76,8 @@ function ManageCustomer() {
         data: { email },
       })
       .then(() => {
-        alert("Customer deleted successfully");
+        // alert("Customer deleted successfully");
+        toast.success("Customer deleted successfully");
         setCustomers(customers.filter((customer) => customer.email !== email));
         setFilteredCustomers(
           filteredCustomers.filter((customer) => customer.email !== email)
@@ -272,16 +274,17 @@ function ManageCustomer() {
           onOk={() => setVisible(false)}
           onCancel={() => setVisible(false)}
           footer={null}
-        ></Modal>
-
-        {showModal && (
-          <AddCustomer
-            customers={customers}
-            closeModal={closeModal}
-            editingCustomer={editingCustomer}
-            updateCustomerList={updateCustomerList}
-          />
-        )}
+        >
+          </Modal>
+          {showModal && (
+            <AddCustomer
+              customers={customers}
+              closeModal={closeModal}
+              editingCustomer={editingCustomer}
+              updateCustomerList={updateCustomerList}
+            />
+          )}
+        
       </div>
     </>
   );

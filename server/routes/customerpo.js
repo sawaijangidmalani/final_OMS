@@ -4,8 +4,7 @@ import con from "../utils/db.js";
 const router = express.Router();
 
 router.post("/insertCustomerPo", async (req, res) => {
-  const { CustomerID, SalesOrderNumber, SalesDate, Status, SalesTotalPrice } =
-    req.body;
+  const { CustomerID, SalesOrderNumber, SalesDate, Status } = req.body;
   console.log(req.body);
 
   if (!CustomerID || !SalesOrderNumber || !SalesDate) {
@@ -19,8 +18,8 @@ router.post("/insertCustomerPo", async (req, res) => {
 
   const sql = `
     INSERT INTO customersalesorder 
-    (CustomerID, ProviderID, SalesOrderNumber, SalesDate, Status, SalesTotalPrice) 
-    VALUES (?, ?, ?, ?, ?, ?)
+    (CustomerID, ProviderID, SalesOrderNumber, SalesDate, Status) 
+    VALUES (?, ?, ?, ?, ?)
   `;
 
   try {
@@ -30,7 +29,6 @@ router.post("/insertCustomerPo", async (req, res) => {
       SalesOrderNumber,
       salesDateFormat,
       Status,
-      SalesTotalPrice,
     ]);
 
     if (result.affectedRows === 0) {
@@ -46,9 +44,15 @@ router.post("/insertCustomerPo", async (req, res) => {
 
 router.get("/getCustomerPo", async (req, res) => {
   const sql = `
-    SELECT cso.*, cust.Name AS CustomerName 
+    SELECT 
+      cso.*, 
+      cust.Name AS CustomerName, 
+      COALESCE(SUM(csoi.SalesPrice), 0) AS SalesTotalPrice
     FROM customersalesorder cso
     JOIN customers cust ON cso.CustomerID = cust.CustomerID
+    LEFT JOIN customersalesorderitems csoi ON cso.CustomerSalesOrderID = csoi.CustomerSalesOrderID
+    GROUP BY cso.CustomerSalesOrderID
+    
   `;
 
   try {
@@ -135,13 +139,15 @@ router.delete("/deleteCustomerPo", async (req, res) => {
   }
 });
 
-
-// Add Item
-router.post("/addcustomersalesorderitems", (req, res) => {
-  console.log("Request body:", req.body);
-
-  const { CustomerSalesOrderID, ItemID, SalesQty, UnitCost, SalesPrice, Tax } =
-    req.body;
+router.post("/addsalesorderitems", async (req, res) => {
+  const {
+    CustomerSalesOrderID,
+    ItemID,
+    AllocatedQty,
+    UnitCost,
+    SalesPrice,
+    Tax,
+  } = req.body;
 
   if (!CustomerSalesOrderID || !ItemID) {
     return res
@@ -149,93 +155,134 @@ router.post("/addcustomersalesorderitems", (req, res) => {
       .json({ message: "CustomerSalesOrderID and ItemID are required." });
   }
 
-  if (isNaN(SalesQty) || isNaN(UnitCost) || isNaN(SalesPrice) || isNaN(Tax)) {
-    return res.status(400).json({
-      message: "SalesQty, UnitCost, SalesPrice, and Tax must be valid numbers.",
-    });
+  if (
+    isNaN(parseFloat(AllocatedQty)) ||
+    isNaN(parseFloat(UnitCost)) ||
+    isNaN(parseFloat(SalesPrice)) ||
+    isNaN(parseFloat(Tax))
+  ) {
+    return res
+      .status(400)
+      .json({ message: "All fields must be valid numbers." });
   }
 
-  if (SalesQty < 0 || UnitCost < 0 || SalesPrice < 0 || Tax < 0) {
-    return res.status(400).json({
-      message: "SalesQty, UnitCost, SalesPrice, and Tax cannot be negative.",
-    });
-  }
-
-  const query = `
-    INSERT INTO customersalesorderitems (CustomerSalesOrderID, ItemID, SalesQty, UnitCost, Tax, SalesPrice)
+  const insertSql = `
+    INSERT INTO customersalesorderitems 
+    (ItemID, AllocatedQty, UnitCost, SalesPrice, Tax, CustomerSalesOrderID)
     VALUES (?, ?, ?, ?, ?, ?)
   `;
-  const values = [
-    CustomerSalesOrderID,
-    ItemID,
-    SalesQty || 0,
-    UnitCost || 0,
-    Tax || 0,
-    SalesPrice || 0,
-  ];
 
-  con.query(query, values, (err, result) => {
-    if (err) {
-      console.error("Error inserting sales order item:", err);
-      return res.status(500).json({ message: "Database error.", error: err });
-    }
-
-    res.status(201).json({
-      message: "Sales order item added successfully.",
-      CustomerSalesOrderItemID: result.insertId,
-    });
-  });
-});
-
-// Edit Item
-router.put("/editcustomersalesorderitems", async (req, res) => {
-  const { ItemID, SalesQty, UnitCost, SalesPrice, Tax, CustomerSalesOrderID } =
-    req.body;
-
-  console.log("Edit request received for ItemID:", ItemID);
-
-  if (!ItemID) {
-    return res.status(400).json({ message: "ItemID is required." });
-  }
-
-  const updateQuery = `
-    UPDATE customersalesorderitems
-    SET 
-      SalesQty = ?, 
-      UnitCost = ?, 
-      SalesPrice = ?, 
-      Tax = ?, 
-      CustomerSalesOrderID = ?
-    WHERE ItemID = ?;
+  const updateSql = `
+    UPDATE customersalesorder
+    SET SalesTotalPrice = (
+      SELECT COALESCE(SUM(SalesPrice), 0)
+      FROM customersalesorderitems
+      WHERE CustomerSalesOrderID = ?
+    )
+    WHERE CustomerSalesOrderID = ?
   `;
 
   try {
-    const [result] = await con.query(updateQuery, [
-      SalesQty,
+    await con.query(insertSql, [
+      ItemID,
+      AllocatedQty,
       UnitCost,
       SalesPrice,
       Tax,
       CustomerSalesOrderID,
-      ItemID,
     ]);
 
-    if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({ message: "Item not found or already updated." });
-    }
+    await con.query(updateSql, [CustomerSalesOrderID, CustomerSalesOrderID]);
 
-    res.status(200).json({ message: "Item updated successfully." });
-  } catch (err) {
-    console.error("Error updating sales order item:", err);
-    res.status(500).json({ message: "Failed to update item." });
+    res.status(201).json({
+      message: "Sales order item added successfully and total price updated.",
+    });
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).json({
+      message: "Failed to add sales order item or update total price.",
+      error: error.message,
+    });
   }
 });
 
-// Get Item
+router.put("/editsalesorderitem", async (req, res) => {
+  const {
+    CustomerSalesOrderItemID,
+    ItemID,
+    AllocatedQty,
+    UnitCost,
+    SalesPrice,
+    Tax,
+    CustomerSalesOrderID,
+  } = req.body;
+
+  if (!CustomerSalesOrderItemID) {
+    return res
+      .status(400)
+      .json({ message: "CustomerSalesOrderItemID is required." });
+  }
+  if (!CustomerSalesOrderID) {
+    return res
+      .status(400)
+      .json({ message: "CustomerSalesOrderID is required." });
+  }
+
+
+  const updateItemQuery = `
+    UPDATE customersalesorderitems
+    SET 
+      ItemID = ?,
+      AllocatedQty = ?, 
+      UnitCost = ?, 
+      SalesPrice = ?, 
+      Tax = ?,
+      CustomerSalesOrderID = ?
+    WHERE CustomerSalesOrderItemID = ?;
+  `;
+
+  const updateTotalPriceQuery = `
+    UPDATE customersalesorder
+    SET SalesTotalPrice = (
+      SELECT COALESCE(SUM(SalesPrice), 0)
+      FROM customersalesorderitems
+      WHERE CustomerSalesOrderID = ?
+    )
+    WHERE CustomerSalesOrderID = ?;
+  `;
+
+  try {
+    const [itemResult] = await con.query(updateItemQuery, [
+      ItemID,
+      AllocatedQty,
+      UnitCost,
+      SalesPrice,
+      Tax,
+      CustomerSalesOrderID,
+      CustomerSalesOrderItemID,
+    ]);
+
+    if (itemResult.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ message: "Sales order item not found or already updated." });
+    }
+
+    await con.query(updateTotalPriceQuery, [
+      CustomerSalesOrderID,
+      CustomerSalesOrderID,
+    ]);
+
+    res.status(200).json({ message: "Sales order item updated successfully." });
+  } catch (error) {
+    console.error("Error updating sales order item:", error);
+    res.status(500).json({ message: "Failed to update sales order item." });
+  }
+});
+
 router.get("/getcustomersalesorderitems", (req, res) => {
   const query = `
-    SELECT si.ItemID, si.SalesQty, si.UnitCost, si.SalesPrice, si.Tax, i.Name AS ItemName
+    SELECT si.CustomerSalesOrderItemID, si.ItemID, si.AllocatedQty, si.UnitCost, si.SalesPrice, si.CustomerSalesOrderID, si.Tax, i.Name AS ItemName
     FROM customersalesorderitems si
     INNER JOIN items i ON si.ItemID = i.ItemID
   `;
@@ -251,27 +298,70 @@ router.get("/getcustomersalesorderitems", (req, res) => {
     });
 });
 
-// Delete Item
-router.delete("/deleteItem/:itemID", (req, res) => {
-  const { itemID } = req.params;
 
-  if (!itemID) {
-    return res.status(400).json({ message: "ItemID is required" });
+router.delete("/deleteItem/:CustomerSalesOrderItemID", async (req, res) => {
+  const { CustomerSalesOrderItemID } = req.params;
+
+  if (!CustomerSalesOrderItemID) {
+    return res
+      .status(400)
+      .json({ message: "CustomerSalesOrderItemID is required" });
   }
 
-  const deleteQuery = "DELETE FROM customersalesorderitems WHERE ItemID = ?";
-  con.query(deleteQuery, [itemID], (err, result) => {
-    if (err) {
-      console.error("Error deleting item:", err);
-      return res.status(500).json({ message: "Error deleting item" });
-    }
+  const getCustomerSalesOrderIDQuery = `
+    SELECT CustomerSalesOrderID 
+    FROM customersalesorderitems 
+    WHERE CustomerSalesOrderItemID = ?
+  `;
 
-    if (result.affectedRows === 0) {
+  const deleteQuery = `
+    DELETE FROM customersalesorderitems 
+    WHERE CustomerSalesOrderItemID = ?
+  `;
+
+  const updateTotalPriceQuery = `
+    UPDATE customersalesorder
+    SET SalesTotalPrice = (
+      SELECT COALESCE(SUM(SalesPrice), 0)
+      FROM customersalesorderitems
+      WHERE CustomerSalesOrderID = ?
+    )
+    WHERE CustomerSalesOrderID = ?
+  `;
+
+  try {
+    const [rows] = await con.query(getCustomerSalesOrderIDQuery, [
+      CustomerSalesOrderItemID,
+    ]);
+    if (rows.length === 0) {
       return res.status(404).json({ message: "Item not found" });
     }
 
-    res.status(200).json({ message: "Item deleted successfully" });
-  });
+    const { CustomerSalesOrderID } = rows[0];
+
+    const [deleteResult] = await con.query(deleteQuery, [
+      CustomerSalesOrderItemID,
+    ]);
+    if (deleteResult.affectedRows === 0) {
+      return res.status(404).json({ message: "Item not found" });
+    }
+
+    await con.query(updateTotalPriceQuery, [
+      CustomerSalesOrderID,
+      CustomerSalesOrderID,
+    ]);
+
+    res.status(200).json({
+      message: "Item deleted successfully and SalesTotalPrice updated",
+    });
+  } catch (error) {
+    console.error("Error handling delete operation:", error);
+    res.status(500).json({
+      message: "Failed to delete item or update SalesTotalPrice",
+      error: error.message,
+    });
+  }
 });
+
 
 export { router as customerPo };

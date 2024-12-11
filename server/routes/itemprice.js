@@ -12,12 +12,6 @@ router.get("/getItemPrices/:itemId", async (req, res) => {
       [itemId]
     );
 
-    if (results.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No prices found for this item." });
-    }
-
     res.json(results);
   } catch (error) {
     console.error("Error fetching item prices:", error);
@@ -29,16 +23,27 @@ router.get("/getItemPrices/:itemId", async (req, res) => {
 router.post("/addItemPrice", async (req, res) => {
   const { ItemID, PurchasePrice, ProviderID, PurchaseDate, Qty, RemainingQty } =
     req.body;
-  console.log(req.body);
 
-  const sql = `
+  const insertSql = `
     INSERT INTO itemsstock 
     (ItemID, PurchasePrice, ProviderID, PurchaseDate, Qty, RemainingQty) 
     VALUES (?, ?, ?, ?, ?, ?)
   `;
 
+  const updateSql = `
+    UPDATE items i
+    JOIN (
+        SELECT ItemID, SUM(Qty) AS TotalQty
+        FROM itemsstock
+        GROUP BY ItemID
+    ) is_total ON i.ItemID = is_total.ItemID
+    SET i.Stock = is_total.TotalQty
+    WHERE i.ItemID = ?
+  `;
+
   try {
-    const [result] = await con.query(sql, [
+    // Insert into itemsstock
+    const [insertResult] = await con.query(insertSql, [
       ItemID,
       PurchasePrice,
       ProviderID,
@@ -47,14 +52,19 @@ router.post("/addItemPrice", async (req, res) => {
       RemainingQty || 0,
     ]);
 
+    // Update items table after insertion
+    const [updateResult] = await con.query(updateSql, [ItemID]);
+
+    console.log("Update Result:", updateResult);
+
     res.status(201).json({
-      message: "Item price added successfully",
-      ItemID: result.insertId,
+      message: "Item price added successfully and stock updated",
+      ItemID: insertResult.insertId,
     });
   } catch (error) {
     console.error("Database error:", error);
     return res.status(500).json({
-      message: "Failed to add item price",
+      message: "Failed to add item price or update stock",
       error: error.message,
     });
   }
@@ -63,55 +73,99 @@ router.post("/addItemPrice", async (req, res) => {
 // **3. Update existing item price (PUT)**
 router.put("/updateItemPrice/:id", async (req, res) => {
   const { id } = req.params;
-  const { PurchasePrice, Qty, PurchaseDate } = req.body;
+  const { PurchasePrice, Qty, PurchaseDate, ItemID } = req.body;
 
-  const sql = `
+  const updateItemStockSql = `
     UPDATE itemsstock 
     SET PurchasePrice = ?, Qty = ?, PurchaseDate = ? 
     WHERE ItemStockID = ?
   `;
 
+  const updateStockSql = `
+    UPDATE items i
+    JOIN (
+        SELECT ItemID, SUM(Qty) AS TotalQty
+        FROM itemsstock
+        GROUP BY ItemID
+    ) is_total ON i.ItemID = is_total.ItemID
+    SET i.Stock = is_total.TotalQty
+    WHERE i.ItemID = ?
+  `;
+
   try {
-    const [result] = await con.query(sql, [
+    const [updateResult] = await con.query(updateItemStockSql, [
       PurchasePrice,
       Qty,
       PurchaseDate,
       id,
     ]);
 
-    if (result.affectedRows === 0) {
+    if (updateResult.affectedRows === 0) {
       return res.status(404).json({ message: "Item not found" });
     }
 
+    const [updateStockResult] = await con.query(updateStockSql, [ItemID]);
+
     res.json({
-      message: "Item price updated successfully",
+      message: "Item price and stock updated successfully",
     });
   } catch (error) {
     console.error("Database error:", error);
     return res.status(500).json({
-      message: "Failed to update item price",
+      message: "Failed to update item price or stock",
       error: error.message,
     });
   }
 });
 
 // **4. Delete item price (DELETE)**
+
 router.delete("/deleteItemPrice/:id", async (req, res) => {
   const { id } = req.params;
 
-  const sql = "DELETE FROM itemsstock WHERE ItemStockID = ?";
+  const fetchItemSql = `
+    SELECT ItemID 
+    FROM itemsstock 
+    WHERE ItemStockID = ?
+  `;
+
+  const deleteItemSql = `
+    DELETE FROM itemsstock 
+    WHERE ItemStockID = ?
+  `;
+
+  const updateStockSql = `
+    UPDATE items i
+    JOIN (
+        SELECT ItemID, SUM(Qty) AS TotalQty
+        FROM itemsstock
+        GROUP BY ItemID
+    ) is_total ON i.ItemID = is_total.ItemID
+    SET i.Stock = is_total.TotalQty
+    WHERE i.ItemID = ?
+  `;
 
   try {
-    const [result] = await con.query(sql, [id]);
+    const [itemData] = await con.query(fetchItemSql, [id]);
+    if (itemData.length === 0) {
+      return res.status(404).json({ message: "Item not found" });
+    }
+    const { ItemID } = itemData[0];
 
-    if (result.affectedRows === 0) {
+    const [deleteResult] = await con.query(deleteItemSql, [id]);
+    if (deleteResult.affectedRows === 0) {
       return res.status(404).json({ message: "Item not found" });
     }
 
-    res.json({ message: "Item price deleted successfully" });
+    await con.query(updateStockSql, [ItemID]);
+
+    res.json({ message: "Item price deleted and stock updated successfully" });
   } catch (error) {
     console.error("Error deleting item price:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({
+      message: "Failed to delete item price or update stock",
+      error: error.message,
+    });
   }
 });
 

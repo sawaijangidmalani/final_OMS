@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import "../Style/Customer.css";
 import { Tooltip, Popconfirm, Pagination } from "antd";
 import AddorEditCustomer from "./AddorEditCustomer.jsx";
+import toast from "react-hot-toast";
 
-function AddSalesItem() {
+function AddSalesItem({ selectedSaleId }) {
   const [itemsData, setItemsData] = useState([]);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -14,7 +15,7 @@ function AddSalesItem() {
 
   useEffect(() => {
     fetchItemsData();
-  }, []);
+  }, [selectedSaleId]);
 
   const fetchItemsData = async () => {
     try {
@@ -22,8 +23,13 @@ function AddSalesItem() {
         "http://localhost:8000/customerpo/getcustomersalesorderitems"
       );
       if (res.data && res.data.data) {
-        setItemsData(res.data.data);
-        calculateTotal(res.data.data);
+        const filteredItems = res.data.data.filter(
+          (item) => item.CustomerSalesOrderID === selectedSaleId
+        );
+        console.log("Filtered Items:", filteredItems);
+
+        setItemsData(filteredItems);
+        calculateTotal(filteredItems);
       } else {
         console.error("No data found in the response.");
       }
@@ -36,27 +42,42 @@ function AddSalesItem() {
     const newTotal = items.reduce((acc, item) => {
       const unitCost = parseFloat(item.UnitCost) || 0;
       const tax = parseFloat(item.Tax) || 0;
-      const salesQty = parseFloat(item.SalesQty) || 0;
+      const allocatedQty = parseFloat(item.AllocatedQty) || 0;
 
-      const itemTotal = salesQty * (unitCost + (unitCost * tax) / 100);
+      const itemTotal = allocatedQty * (unitCost + (unitCost * tax) / 100);
       return acc + itemTotal;
     }, 0);
 
     setTotal(newTotal.toFixed(2));
   };
 
-  const handleDelete = async (itemID) => {
+  // const handleDelete = async (itemID) => {
+  //   try {
+  //     await axios.delete(
+  //       `http://localhost:8000/customerpo/deleteItem/${CustomerSalesOrderItemID}`
+  //     );
+  //     fetchItemsData();
+  //     toast.success("Sales item deleted successfully!");
+  //     window.location.reload();
+  //   } catch (error) {
+  //     console.error("Error deleting item:", error);
+  //     alert("Error deleting item! Please try again.");
+  //   }
+  // };
+
+  const handleDelete = async (CustomerSalesOrderItemID) => {
     try {
       await axios.delete(
-        `http://localhost:8000/customerpo/deleteItem/${itemID}`
+        `http://localhost:8000/customerpo/deleteItem/${CustomerSalesOrderItemID}`
       );
-      fetchItemsData();
-      alert("Item deleted successfully!");
+      toast.success("Sales item deleted successfully!");
+      fetchItemsData(); // Data ko refresh karne ke liye
     } catch (error) {
       console.error("Error deleting item:", error);
-      alert("Error deleting item! Please try again.");
+      toast.error("Error deleting item! Please try again.");
     }
   };
+  
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -88,7 +109,7 @@ function AddSalesItem() {
           {paginatedData.map((item, index) => (
             <tr key={index}>
               <td>{item.ItemName}</td>
-              <td>{item.SalesQty}</td>
+              <td>{item.AllocatedQty}</td>
               <td>{item.UnitCost}</td>
               <td>{item.Tax}</td>
               <td>{item.SalesPrice}</td>
@@ -121,7 +142,7 @@ function AddSalesItem() {
                     <Popconfirm
                       placement="topLeft"
                       description="Are you sure to delete this item?"
-                      onConfirm={() => handleDelete(item.ItemID)}
+                      onConfirm={() => handleDelete(item.CustomerSalesOrderItemID)}
                       okText="Delete"
                     >
                       <button className="btns2">
@@ -150,6 +171,7 @@ function AddSalesItem() {
 
       {editingItem && (
         <AddorEditCustomer
+          selectedSaleId={selectedSaleId}
           onClose={() => setEditingItem(false)}
           onSalesOrderItemData={fetchItemsData}
           refreshItemsData={fetchItemsData}

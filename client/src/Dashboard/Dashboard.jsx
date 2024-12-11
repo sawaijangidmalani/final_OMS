@@ -255,9 +255,9 @@ function Dashboard() {
               <tbody>
                 {sales.map((sale, index) => (
                   <tr key={sale.id || index}>
-                    <td>{sale.name}</td>
+                    <td>{sale.CustomerName}</td>
                     <td>{sale.quantity}</td>
-                    <td>{sale.cost}</td>
+                    <td>{sale.SalesTotalPrice}</td>
                   </tr>
                 ))}
               </tbody>
@@ -278,9 +278,9 @@ function Dashboard() {
 
               <tbody>
                 {purchase.map((item) => (
-                  <tr key={item.id}>
+                  <tr key={item.CustomerName}>
                     <td>
-                      {item?.item?.[0]?.customer ? item.item[0].customer : ""}
+                      {item?.item?.[0]?.CustomerName ? item.item[0].CustomerName : ""}
                     </td>
                     <td>
                       {item?.item?.[0]?.qtyAllocated

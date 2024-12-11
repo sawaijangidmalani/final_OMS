@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import PurchaseOrder from "./PurchaseOrder";
+import axios from "axios";
+import "../Style/Customer.css";
 import {
   BiEdit,
   BiTrash,
@@ -9,9 +11,8 @@ import {
   BiUpArrowAlt,
   BiDownArrowAlt,
 } from "react-icons/bi";
-import axios from "axios";
 import { Popconfirm, Tooltip, Pagination } from "antd";
-import "../Style/Customer.css";
+import toast from "react-hot-toast";
 
 const Modal = styled.div`
   position: absolute;
@@ -48,14 +49,19 @@ function ManagePurchase() {
   const [pageSize] = useState(5);
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
+  const [selectedPurchaseId, setSelectedPurchaseId] = useState(null);
+  const [customesId, setCustomesId] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.get("http://localhost:8000/po/getpo");
+
         const updatedData = response.data.map((purchase) => ({
           ...purchase,
           CustomerName: purchase.CustomerName,
+          PurchaseTotalPrice: purchase.PurchaseTotalPrice,
+          CustomerPO: purchase.CustomerPO,
         }));
 
         setPurchaseData(updatedData);
@@ -67,10 +73,16 @@ function ManagePurchase() {
         setPurchaseOrders(
           updatedData.map((purchase) => purchase.PurchaseOrderNumber)
         );
-      } catch (error) {}
+      } catch (error) {
+        console.error("Error fetching purchase data:", error);
+      }
     };
     fetchData();
   }, []);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
   const handleDelete = async (index) => {
     const purchaseOrderNumber = filteredData[index].PurchaseOrderNumber;
@@ -86,7 +98,7 @@ function ManagePurchase() {
         }
       );
       if (response.ok) {
-        alert("Purchase order deleted successfully");
+        toast.success("Purchase Order deleted successfully!");
         const updatedPurchaseData = [...purchaseData];
         updatedPurchaseData.splice(index, 1);
         setPurchaseData(updatedPurchaseData);
@@ -123,6 +135,9 @@ function ManagePurchase() {
     setCurrentPage(1);
   };
 
+  const handleClsoe = () => {
+    setShowModal(false);
+  };
   const getSortArrow = (field) => {
     if (sortField === field) {
       return sortOrder === "asc" ? <BiUpArrowAlt /> : <BiDownArrowAlt />;
@@ -162,7 +177,9 @@ function ManagePurchase() {
         (selectedPurchaseOrder
           ? purchase.PurchaseOrderNumber === selectedPurchaseOrder
           : true) &&
-        (selectedCustomerPO ? purchase.CustomerPO === selectedCustomerPO : true)
+        (selectedCustomerPO
+          ? purchase.SalesOrderNumber === selectedCustomerPO
+          : true)
       );
     });
 
@@ -172,18 +189,15 @@ function ManagePurchase() {
 
   const handleEdit = (purchase) => {
     setSelectedPurchaseIndex(purchase);
-    setSelectedPurchaseData(purchase);
-    setEditModalVisible(true);
+    setSelectedPurchaseId(purchase.PurchaseOrderID);
+    setCustomesId(purchase.CustomerID);
+    setShowModal(true);
   };
 
   const paginatedData = filteredData.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
 
   const toggleDropdownPurchaseOrder = () => {
     setDropdownOpenPurchaseOrder(!dropdownOpenPurchaseOrder);
@@ -353,7 +367,7 @@ function ManagePurchase() {
                   Customer PO {getSortArrow("CustomerPO")}
                 </th>
                 <th onClick={() => handleSort("PODate")}>
-                  Sales Date {getSortArrow("PODate")}
+                  Purchase Date {getSortArrow("PODate")}
                 </th>
 
                 <th onClick={() => handleSort("SalesTotalPrice")}>
@@ -368,7 +382,7 @@ function ManagePurchase() {
                 <tr key={index}>
                   <td>{purchase.CustomerName}</td>
                   <td>{purchase.PurchaseOrderNumber}</td>
-                  <td>{purchase.CustomerPO}</td>
+                  <td>{purchase.SalesOrderNumber}</td>
                   <td>
                     {new Date(purchase.PurchaseDate).toLocaleDateString()}
                   </td>
@@ -427,7 +441,14 @@ function ManagePurchase() {
       {showModal && (
         <div className="stylemodal">
           <Modal>
-            <PurchaseOrder handlePurchaseData={handlePurchaseData} />
+            <PurchaseOrder
+              handlePurchaseData={handlePurchaseData}
+              selectedPurchaseId={selectedPurchaseId}
+              customesId={customesId}
+              existingOrder={selectedPurchaseIndex}
+              purchaseData={purchaseData}
+              onCloses={handleClsoe}
+            />
           </Modal>
         </div>
       )}

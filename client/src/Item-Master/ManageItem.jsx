@@ -15,10 +15,10 @@ import { MdDelete } from "react-icons/md";
 import axios from "axios";
 import { Tooltip, Pagination, Popconfirm } from "antd";
 import "../Style/Customer.css";
+import { useLocation } from "react-router-dom";
 
 function ManageItem() {
   const [items, setItems] = useState([]);
-  const [itemUnits, setItemUnits] = useState({});
   const [selectedItem, setSelectedItem] = useState("");
   const [selectedSupplier, setSelectedSupplier] = useState("");
   const [isItemDropdownOpen, setIsItemDropdownOpen] = useState(false);
@@ -37,6 +37,8 @@ function ManageItem() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: "", order: "asc" });
 
+  const [selectedItemStock, setSelectedItemStock] = useState([]);
+
   useEffect(() => {
     axios.get("http://localhost:8000/item/getItems").then((data) => {
       if (!data?.data?.error) {
@@ -46,11 +48,31 @@ function ManageItem() {
     });
   }, []);
 
+  useEffect(() => {
+    fetchItemPrices();
+  }, [items]);
+
+  useEffect(() => {
+    // setShowStock(false);
+  }, [filteredItems]);
+
   const handleShowStock = (item) => {
     setSelectedItemName(item.Name);
     setSelectedItemId(item.ItemID);
+    setSelectedItemStock(item.Stock || 0);
     setShowStocks(true);
   };
+
+  const handleShowStocks = (item) => {
+    setSelectedItemName(item.Name);
+    setSelectedItemStock(item.Stock || 0);
+    setShowStock(true);
+    filteredItems();
+  };
+
+  useEffect((item) => {
+    setSelectedItemStock(item);
+  }, []);
 
   const handleInputChange = (e) => {
     const value = e.target.value;
@@ -87,6 +109,7 @@ function ManageItem() {
 
     setFilteredItems(filtered);
     setCurrentPage(1);
+    fetchItemPrices(filtered);
   };
 
   const filterItems = (itemName, supplierName) => {
@@ -97,6 +120,7 @@ function ManageItem() {
     );
     setFilteredItems(filtered);
     setCurrentPage(1);
+    fetchItemPrices(filtered);
   };
 
   const handleSearchChangeItem = (e) => {
@@ -135,6 +159,7 @@ function ManageItem() {
 
   const onPageChange = (page) => {
     setCurrentPage(page);
+    // fetchItemPrices();
   };
 
   const handleSort = (key) => {
@@ -157,7 +182,6 @@ function ManageItem() {
       })
       .then(() => {
         alert("Item deleted successfully");
-
         setItems((prevItems) =>
           prevItems.filter((item) => item.ItemID !== ItemID)
         );
@@ -180,11 +204,12 @@ function ManageItem() {
     setIsItemDropdownOpen(!isItemDropdownOpen);
     setIsSupplierDropdownOpen(false);
   };
-  
 
-  const handleAddItem = () => {
-    setEditItem(null);
+  const handleAddItem = (item) => {
+    // setEditItem(null);
+    setEditItem(item);
     setShowModal(true);
+    setSelectedItemStock(item.Stock || 0); // New Added
   };
 
   const handleEditItem = (item) => {
@@ -198,6 +223,41 @@ function ManageItem() {
 
   const closeModal = () => {
     setShowModal(false);
+  };
+
+  const fetchItemPrices = async (itemsToFetch = filteredItems) => {
+    try {
+      const itemStockRequests = itemsToFetch.map((item) =>
+        axios.get(
+          `http://localhost:8000/itemPrice/getItemPrices/${item.ItemID}`
+        )
+      );
+      const responses = await Promise.all(itemStockRequests);
+
+      const stockMap = {};
+
+      responses.forEach((response) => {
+        const itemPrices = response.data;
+
+        itemPrices.forEach((item) => {
+          const qty = parseInt(item.Qty || 0, 10);
+          if (stockMap[item.ItemID]) {
+            stockMap[item.ItemID] += qty;
+          } else {
+            stockMap[item.ItemID] = qty;
+          }
+        });
+      });
+
+      const updatedFilteredItems = filteredItems
+        .map((item) => ({
+          ...item,
+          Stock: stockMap[item.ItemID] || 0,
+        }))
+        .filter((item) => item.ItemID > 0);
+
+      setFilteredItems(updatedFilteredItems);
+    } catch (err) {}
   };
 
   return (
@@ -332,7 +392,7 @@ function ManageItem() {
                   <td>{item.SupplierName}</td>
                   <td>{item.Category}</td>
                   <td>{item.Brand}</td>
-                  <td>{item.Stock}</td>
+                  <td>{item.Stock || 0}</td>
                   <td>{item.UnitName}</td>
                   <td>{item.Status === 1 ? "Active" : "Inactive"}</td>
                   <td>
@@ -397,7 +457,7 @@ function ManageItem() {
                       >
                         <button
                           className="btns1"
-                          onClick={() => setShowStock(true)}
+                          onClick={() => handleShowStocks(item)}
                         >
                           <BiInfoCircle />
                         </button>
@@ -424,12 +484,20 @@ function ManageItem() {
           closeModal={closeModal}
         />
       )}
-      {showStock && <ItemStockUtilization />}
+      {showStock && (
+        <ItemStockUtilization
+          setShowStock={setShowStock}
+          selectedItemName1={selectedItemName}
+          currentData={currentData}
+          selectedItemStock={selectedItemStock}
+        />
+      )}
       {showStocks && (
         <ItemPrice
           handleClose={() => setShowStocks(false)}
           selectedItemName={selectedItemName}
           selectedItemId={selectedItemId}
+          selectedItemStock={selectedItemStock}
         />
       )}
     </>

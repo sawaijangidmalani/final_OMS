@@ -58,7 +58,14 @@ function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Ensure proper date format for type="date"
+    const updatedValue =
+      name === "PurchaseDate" && value
+        ? new Date(value).toISOString().split("T")[0]
+        : value;
+
+    setFormData((prev) => ({ ...prev, [name]: updatedValue }));
   };
 
   const handleSubmit = async (event) => {
@@ -86,7 +93,12 @@ function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
   };
 
   const handleEditItem = (item) => {
-    setFormData(item);
+    setFormData({
+      ...item,
+      PurchaseDate: new Date(item.PurchaseDate)
+        .toISOString()
+        .split("T")[0], // Format the date for the input field
+    });
     setIsEditing(true);
     setEditItemId(item.ItemStockID);
   };
@@ -115,6 +127,7 @@ function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
   const handleCancel = () => {
     handleClose();
     resetForm();
+    window.location.reload();
   };
 
   // Sorting function
@@ -138,6 +151,12 @@ function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Calculate total quantity
+  const totalQty = itemPriceData.reduce(
+    (total, item) => total + (parseInt(item.Qty) || 0),
+    0
+  );
 
   return (
     <div className="style-model">
@@ -168,7 +187,13 @@ function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
               <input
                 type="date"
                 name="PurchaseDate"
-                value={formData.PurchaseDate}
+                value={
+                  formData.PurchaseDate
+                    ? new Date(formData.PurchaseDate)
+                        .toISOString()
+                        .split("T")[0]
+                    : ""
+                }
                 onChange={handleInputChange}
                 required
               />
@@ -231,7 +256,9 @@ function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
                       <td>{item.PurchasePrice}</td>
                       <td>{item.Qty}</td>
                       <td>
-                        {new Date(item.PurchaseDate).toLocaleDateString()}
+                        {new Date(item.PurchaseDate)
+                          .toISOString()
+                          .split("T")[0]}
                       </td>
                       <td>
                         <div className="buttons-group">
@@ -284,6 +311,13 @@ function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
               onChange={(page) => setCurrentPage(page)}
               showSizeChanger={false}
             />
+
+            <div>
+              <p>
+                <b>Total Qty:</b>{" "}
+                <span style={{ paddingLeft: "10px" }}>{totalQty}</span>
+              </p>
+            </div>
 
             <div className="customer-form__button-container">
               <button type="submit" className="customer-form__button">

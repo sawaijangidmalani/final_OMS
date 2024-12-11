@@ -3,13 +3,17 @@ import con from "../utils/db.js";
 
 const router = express.Router();
 
+// POST Insert Purchase Order
 router.post("/insertpo", async (req, res) => {
   const {
     CustomerID,
     CustomerSalesOrderID,
+    ProviderID,
     PurchaseOrderNumber,
     PurchaseDate,
     Status,
+    PurchaseTotalPrice,
+    items,
   } = req.body;
 
   if (
@@ -24,31 +28,47 @@ router.post("/insertpo", async (req, res) => {
       .json({ error: true, message: "Missing or invalid data" });
   }
 
+  const insertPOQuery = `
+    INSERT INTO purchaseorders 
+    (CustomerSalesOrderID, CustomerID, ProviderID, PurchaseOrderNumber, PurchaseDate, Status, PurchaseTotalPrice)
+    VALUES (?, ?, ?, ?, ?, ?, ?);
+  `;
 
-  const insertQuery = `
-    INSERT INTO purchaseorders (CustomerSalesOrderID, CustomerID, ProviderID, PurchaseOrderNumber, PurchaseDate, Status) 
-    VALUES (?, ?, ?, ?, ?, ?);
+  const insertItemsQuery = `
+    INSERT INTO purchaseorderitems (PurchaseOrderID, ItemID, Quantity, Price)
+    VALUES ?;
   `;
 
   try {
     await con.query("START TRANSACTION");
 
-    const insertValues = [
+    const [poResult] = await con.query(insertPOQuery, [
       CustomerSalesOrderID,
       CustomerID,
-      1,
+      ProviderID || 1,
       PurchaseOrderNumber,
       PurchaseDate,
       Status,
-    ];
+      PurchaseTotalPrice || 0,
+    ]);
 
-    await con.query(insertQuery, insertValues);
+    const PurchaseOrderID = poResult.insertId;
+
+    if (items && items.length > 0) {
+      const itemValues = items.map((item) => [
+        PurchaseOrderID,
+        item.ItemID,
+        item.Quantity,
+        item.Price || 0,
+      ]);
+      await con.query(insertItemsQuery, [itemValues]);
+    }
 
     await con.query("COMMIT");
     res.status(201).json({ message: "Purchase order inserted successfully" });
   } catch (error) {
     await con.query("ROLLBACK");
-    console.error("Error inserting data:", error.message);
+    console.error("Error inserting purchase order:", error.message);
     res.status(500).json({
       error: true,
       message: "Error inserting purchase order",
@@ -57,23 +77,40 @@ router.post("/insertpo", async (req, res) => {
   }
 });
 
+// GET endpoint to retrieve purchase orders
+router.get("/getpo", async (req, res) => {
+  const sql = `
+SELECT
+  po.*,
+  cust.Name AS CustomerName,
+  so.SalesOrderNumber,
+  COALESCE(SUM(poi.PurchasePrice), 0) AS PurchaseTotalPrice
+FROM purchaseorders po
+JOIN customers cust ON po.CustomerID = cust.CustomerID
+JOIN customersalesorder so ON po.CustomerSalesOrderID = so.CustomerSalesOrderID
+LEFT JOIN purchaseorderitems poi ON po.PurchaseOrderID = poi.PurchaseOrderID
+GROUP BY po.PurchaseOrderID;
+`;
+
+  try {
+    const [results] = await con.query(sql);
+    res.status(200).json(results);
+  } catch (err) {
+    console.error("Error fetching purchase orders:", err);
+    res.status(500).send("An error occurred while fetching purchase orders.");
+  }
+});
 
 // PUT Edit Purchase Order
 router.put("/updatepo/:purchaseOrderNumber", async (req, res) => {
-  const { purchaseOrderNumber } = req.params; // Extract PurchaseOrderNumber from the URL params
-  const {
-    CustomerID,
-    CustomerSalesOrderID,
-    PurchaseDate,
-    Status,
-  } = req.body;
+  const { purchaseOrderNumber } = req.params;
+  const { CustomerID, CustomerSalesOrderID, PurchaseDate, Status } = req.body;
 
   if (!CustomerID || !CustomerSalesOrderID || !PurchaseDate || !Status) {
     return res
       .status(400)
       .json({ error: true, message: "Missing or invalid data" });
   }
-
 
   const updateQuery = `
     UPDATE purchaseorders
@@ -98,7 +135,6 @@ router.put("/updatepo/:purchaseOrderNumber", async (req, res) => {
 
     const [result] = await con.query(updateQuery, updateValues);
 
-    // Check if any row was updated
     if (result.affectedRows === 0) {
       return res.status(404).json({
         error: true,
@@ -119,53 +155,8 @@ router.put("/updatepo/:purchaseOrderNumber", async (req, res) => {
   }
 });
 
-
-// GET endpoint to retrieve purchase orders
-router.get("/getpo", async (req, res) => {
-  const selectQuery = `
-    SELECT 
-      po.PurchaseOrderID,
-      po.CustomerSalesOrderID AS CustomerPO,
-      so.SalesOrderNumber,
-      po.PurchaseOrderNumber,
-      po.PurchaseDate,
-      po.Status,
-      c.Name AS CustomerName
-    FROM 
-      purchaseorders po
-    JOIN 
-      customers c ON po.CustomerID = c.CustomerID
-    JOIN
-      customersalesorder so ON po.CustomerSalesOrderID = so.CustomerSalesOrderID;
-  `;
-
-  try {
-    const [rows] = await con.query(selectQuery);
-    const formattedRows = rows.map((row) => ({
-      CustomerName: row.CustomerName,
-      PurchaseOrderNumber: row.PurchaseOrderNumber,
-      CustomerPO: row.SalesOrderNumber,
-      PurchaseDate: row.PurchaseDate,
-      TotalPurchase: 0.0,
-      Status: row.Status,
-    }));
-
-    res.status(200).json(formattedRows);
-  } catch (error) {
-    console.error("Error retrieving purchase orders:", error.message);
-    res.status(500).json({
-      error: true,
-      message: "Error retrieving purchase orders",
-      details: error.message,
-    });
-  }
-});
-
-
-
 router.delete("/deletePurchaseOrder", async (req, res) => {
   const { PurchaseOrderNumber } = req.body;
-  console.log("Request Body:", req.body);
 
   if (!PurchaseOrderNumber) {
     return res.status(400).send("PurchaseOrderNumber is required.");
@@ -190,12 +181,10 @@ router.delete("/deletePurchaseOrder", async (req, res) => {
 });
 
 // Add Purchase Order Item
-router.post("/addpurchaseorderitems", (req, res) => {
-  console.log("Incoming request body:", req.body);
-
+router.post("/addpurchaseorderitems", async (req, res) => {
   const {
     ItemID,
-    PurchaseQty,
+    AllocatedQty,
     UnitCost,
     PurchasePrice,
     InvoiceNumber,
@@ -203,57 +192,62 @@ router.post("/addpurchaseorderitems", (req, res) => {
     PurchaseOrderID,
   } = req.body;
 
-  if (
-    !ItemID ||
-    !PurchaseQty ||
-    !UnitCost ||
-    !PurchasePrice ||
-    !PurchaseOrderID
-  ) {
-    return res
-      .status(400)
-      .json({ message: "Missing required fields", data: req.body });
+  if (!PurchaseOrderID || !ItemID) {
+    return res.status(400).json({ message: "Missing required fields." });
   }
 
-  const sql = `
-    INSERT INTO purchaseorderitems 
-    (ItemID, PurchaseQty, UnitCost, PurchasePrice, InvoiceNumber, InvoiceDate, PurchaseOrderID)
+  if (
+    isNaN(parseFloat(AllocatedQty)) ||
+    isNaN(parseFloat(UnitCost)) ||
+    isNaN(parseFloat(PurchasePrice)) ||
+    !InvoiceNumber ||
+    !InvoiceDate
+  ) {
+    return res.status(400).json({ message: "Invalid or missing fields." });
+  }
+
+  const insertSql = `
+    INSERT INTO purchaseorderitems
+    (ItemID, AllocatedQty, UnitCost, PurchasePrice, InvoiceNumber, InvoiceDate, PurchaseOrderID) 
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
 
-  con.query(
-    sql,
-    [
+  const updateSql = `
+    UPDATE purchaseorders
+    SET PurchaseTotalPrice = (
+      SELECT COALESCE(SUM(PurchasePrice), 0)
+      FROM purchaseorderitems
+      WHERE PurchaseOrderID = ?
+    )
+    WHERE PurchaseOrderID = ?
+  `;
+
+  try {
+    await con.query(insertSql, [
       ItemID,
-      PurchaseQty,
+      AllocatedQty,
       UnitCost,
       PurchasePrice,
-      InvoiceNumber || null,
-      InvoiceDate || null,
+      InvoiceNumber,
+      InvoiceDate,
       PurchaseOrderID,
-    ],
-    (err, result) => {
-      if (err) {
-        console.error("Error adding purchase order item:", err);
-        return res.status(500).json({ message: "Database error", error: err });
-      }
+    ]);
 
-      res.status(201).json({
-        success: true,
-        message: "Purchase order item added successfully",
-        data: result,
-      });
-    }
-  );
+    await con.query(updateSql, [PurchaseOrderID, PurchaseOrderID]);
+
+    res.status(201).json({ success: true });
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).json({ success: false });
+  }
 });
 
 // Edit Purchase Order Item
-router.put("/editpurchaseorderitems", (req, res) => {
-  console.log("Incoming request body for edit:", req.body);
-
+router.put("/editpurchaseorderitems", async (req, res) => {
   const {
+    PurchaseOrderItemID,
     ItemID,
-    PurchaseQty,
+    AllocatedQty,
     UnitCost,
     PurchasePrice,
     InvoiceNumber,
@@ -261,68 +255,84 @@ router.put("/editpurchaseorderitems", (req, res) => {
     PurchaseOrderID,
   } = req.body;
 
-  // Validate required fields
-  if (
-    !ItemID ||
-    !PurchaseQty ||
-    !UnitCost ||
-    !PurchasePrice ||
-    !PurchaseOrderID
-  ) {
+  console.log("Request Body:", req.body);
+
+  if (!PurchaseOrderItemID || !ItemID) {
     return res
       .status(400)
-      .json({ success: false, message: "Missing required fields" });
+      .json({ message: "PurchaseOrderItemID and ItemID are required." });
   }
 
-  const sql = `
+  if (!PurchaseOrderID) {
+    return res
+      .status(400)
+      .json({ message: "PurchaseOrderID and ItemID are required." });
+  }
+  const updateItemQuery = `
     UPDATE purchaseorderitems
-    SET PurchaseQty = ?, UnitCost = ?, PurchasePrice = ?, InvoiceNumber = ?, InvoiceDate = ?, PurchaseOrderID = ?
-    WHERE ItemID = ? -- Ensure this matches the specific item
-  `;
+    SET
+      ItemID = ?,
+      AllocatedQty = ?, 
+      UnitCost = ?,
+      PurchasePrice = ?,
+      InvoiceNumber = ?,
+      InvoiceDate = ?,
+      PurchaseOrderID = ?
+    WHERE PurchaseOrderItemID = ?
+`;
 
-  con.query(
-    sql,
-    [
-      PurchaseQty,
+  const updateTotalPriceQuery = `
+    UPDATE purchaseorders
+    SET PurchaseTotalPrice = (
+        SELECT COALESCE(SUM(PurchasePrice), 0)
+        FROM purchaseorderitems
+        WHERE PurchaseOrderID = ?
+    )
+    WHERE PurchaseOrderID = ?
+`;
+
+  try {
+    const [itemResult] = await con.query(updateItemQuery, [
+      ItemID,
+      AllocatedQty,
       UnitCost,
       PurchasePrice,
-      InvoiceNumber || null,
-      InvoiceDate || null,
+      InvoiceNumber,
+      InvoiceDate,
       PurchaseOrderID,
-      ItemID, // Use correct ItemID for WHERE clause
-    ],
-    (err, result) => {
-      if (err) {
-        console.error("Error editing purchase order item:", err);
-        return res
-          .status(500)
-          .json({ success: false, message: "Database error", error: err });
-      }
+      PurchaseOrderItemID,
+    ]);
 
-      if (result.affectedRows > 0) {
-        res.status(200).json({
-          success: true,
-          message: "Purchase order item updated successfully",
-        });
-      } else {
-        res.status(404).json({
-          success: false,
-          message: "No matching item found to update",
-        });
-      }
+    if (itemResult.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ message: "Purchase order item not found or already updated." });
     }
-  );
+
+    await con.query(updateTotalPriceQuery, [PurchaseOrderID, PurchaseOrderID]);
+
+    res
+      .status(200)
+      .json({ message: "Purchase order item updated successfully." });
+  } catch (error) {
+    console.error("Error executing query:", error.sqlMessage || error);
+    res.status(500).json({ message: "Failed to update purchase order item." });
+  }
 });
 
 router.get("/getpurchaseorderitems", (req, res) => {
   const query = `
-    SELECT si.ItemID, si.PurchaseQty, si.UnitCost, si.PurchasePrice,si.InvoiceNumber,si.InvoiceDate, i.Name AS ItemName 
-  FROM purchaseorderitems si
-   INNER JOIN items i ON si.ItemID = i.ItemID
+   SELECT si.PurchaseOrderItemID, si.PurchaseOrderID, si.ItemID, si.AllocatedQty, si.UnitCost, 
+       si.PurchasePrice, si.InvoiceNumber, si.InvoiceDate, 
+       i.Name AS ItemName 
+FROM purchaseorderitems si
+INNER JOIN items i ON si.ItemID = i.ItemID
+
   `;
   con
     .query(query)
     .then(([rows, fields]) => {
+      console.log(rows);
       res.status(200).json({ data: rows });
     })
     .catch((err) => {
@@ -331,26 +341,61 @@ router.get("/getpurchaseorderitems", (req, res) => {
     });
 });
 
-router.delete("/deleteItem/:itemID", (req, res) => {
-  const { itemID } = req.params;
+router.delete("/deleteItem/:PurchaseOrderItemID", async (req, res) => {
+  const { PurchaseOrderItemID } = req.params;
 
-  if (!itemID) {
-    return res.status(400).json({ message: "ItemID is required" });
+  if (!PurchaseOrderItemID) {
+    return res.status(400).json({ message: "PurchaseOrderItemID is required" });
   }
 
-  const deleteQuery = "DELETE FROM purchaseorderitems WHERE ItemID = ?";
-  con.query(deleteQuery, [itemID], (err, result) => {
-    if (err) {
-      console.error("Error deleting item:", err);
-      return res.status(500).json({ message: "Error deleting item" });
-    }
+  const getPurchaseOrderIDQuery = `
+    SELECT PurchaseOrderID
+    FROM purchaseorderitems
+    WHERE PurchaseOrderItemID = ?
+  `;
 
-    if (result.affectedRows === 0) {
+  const deleteQuery = `
+    DELETE FROM purchaseorderitems
+    WHERE PurchaseOrderItemID = ?
+  `;
+
+  const updateTotalPriceQuery = `
+    UPDATE purchaseorders 
+    SET PurchaseTotalPrice = (
+      SELECT COALESCE(SUM(PurchasePrice), 0)
+      FROM purchaseorderitems
+      WHERE PurchaseOrderID = ?
+    )
+    WHERE PurchaseOrderID = ?
+  `;
+
+  try {
+    const [rows] = await con.query(getPurchaseOrderIDQuery, [
+      PurchaseOrderItemID,
+    ]);
+    if (rows.length === 0) {
       return res.status(404).json({ message: "Item not found" });
     }
 
-    res.status(200).json({ message: "Item deleted successfully" });
-  });
+    const { PurchaseOrderID } = rows[0];
+
+    const [deleteResult] = await con.query(deleteQuery, [PurchaseOrderItemID]);
+    if (deleteResult.affectedRows === 0) {
+      return res.status(404).json({ message: "Item not found" });
+    }
+
+    await con.query(updateTotalPriceQuery, [PurchaseOrderID, PurchaseOrderID]);
+
+    res.status(200).json({
+      message: "Item deleted successfully!",
+    });
+  } catch (error) {
+    console.error("Error handling delete operation:", error);
+    res.status(500).json({
+      message: "Failed to delete item or update PurchaseTotalPrice",
+      error: error.message,
+    });
+  }
 });
 
 export { router as porouter };

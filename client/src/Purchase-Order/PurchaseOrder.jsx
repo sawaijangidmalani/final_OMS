@@ -5,20 +5,27 @@ import AddOrEdit from "./AddOrEdit";
 import axios from "axios";
 import "../Style/Add.css";
 import "../Style/salesorder.css";
+import toast from "react-hot-toast";
 
-const PurchaseOrder = ({ onClose, editData }) => {
+const PurchaseOrder = ({
+  onCloses,
+  editData,
+  customesId,
+  selectedPurchaseId,
+  existingOrder,
+  resetForm,
+}) => {
   const [customerID, setCustomerID] = useState("");
   const [customerPO, setCustomerPO] = useState("");
   const [date, setDate] = useState("");
   const [status, setStatus] = useState("");
   const [purchaseOrderNumber, setPurchaseOrderNumber] = useState("");
   const [items, setItems] = useState([]);
-  const [showAddOrEdit, setShowAddOrEdit] = useState(false);
+  const [addClick, setAddClick] = useState(false);
   const [customerData, setCustomerData] = useState([]);
   const [salesData, setSalesData] = useState([]);
   const [purchaseOrderItems, setPurchaseOrderItems] = useState([]);
-
-  const navigate = useNavigate();
+  const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
     const fetchSalesData = async () => {
@@ -53,13 +60,8 @@ const PurchaseOrder = ({ onClose, editData }) => {
     fetchCustomerData();
   }, []);
 
-  const calculateTotalPrice = (items) => {
-    return items.reduce((total, item) => total + item.price * item.quantity, 0);
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log("Form submitted");
 
     const data = {
       PurchaseOrderID: editData ? editData.PurchaseOrderID : "",
@@ -73,32 +75,31 @@ const PurchaseOrder = ({ onClose, editData }) => {
       items,
     };
 
-    console.log("Data to be sent:", data);
 
     try {
       let response;
 
-      if (editData && editData.PurchaseOrderNumber) {
+      if (editData && editData.PurchaseOrderID) {
         response = await axios.put(
-          `http://localhost:8000/po/updatepo/${editData.PurchaseOrderNumber}`,
+          `http://localhost:8000/po/updatepo/${editData.PurchaseOrderID}`,
           data
         );
 
+
         if (response.status === 200 || response.status === 201) {
-          console.log("Response:", response);
-          alert("Purchase order updated successfully");
+          // alert("Purchase order updated successfully");
+          toast.success("Purchase order updated successfully");
         }
       } else {
         response = await axios.post("http://localhost:8000/po/insertpo", data);
 
         if (response.status === 200 || response.status === 201) {
-          console.log("Response:", response);
-          alert("Purchase order Saved successfully");
+          // alert("Purchase order Saved successfully");
+          toast.success("Purchase order Saved successfully");
         }
       }
-
       window.location.reload();
-      onClose();
+      onCloses();
       resetForm();
     } catch (error) {
       console.error("Error inserting/updating purchase order:", error);
@@ -106,35 +107,35 @@ const PurchaseOrder = ({ onClose, editData }) => {
   };
 
   useEffect(() => {
-    if (editData) {
-      setCustomerID(editData.CustomerID);
-      setCustomerPO(editData.CustomerSalesOrderID);
-      setDate(editData.PurchaseDate);
-      setStatus(editData.Status);
-      setPurchaseOrderNumber(editData.PurchaseOrderNumber);
-      setItems(editData.items);
-    }
-  }, [editData]);
+    if (existingOrder) {
+      setCustomerID(existingOrder.CustomerID);
+      setCustomerPO(existingOrder.CustomerSalesOrderID);
+      setDate(
+        existingOrder.PurchaseDate
+          ? existingOrder.PurchaseDate.slice(0, 10)
+          : ""
+      );
+      setStatus(existingOrder.Status);
+      setPurchaseOrderNumber(existingOrder.PurchaseOrderNumber);
+    } 
+  }, [existingOrder]);
 
   const handleAddItemClick = () => {
-    setShowAddOrEdit(true);
+    setAddClick(true);
   };
 
   const handleAddItem = (item) => {
-    setItems([...items, item]);
-    setShowAddOrEdit(false);
-    resetForm();
+    const updateItems = [...purchaseOrderItems, item];
+    setPurchaseOrderItems(updateItems);
+    calculateTotalPrice(updateItems);
+  };
+
+  const calculateTotalPrice = (items) => {
+    return items.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
   const handleCancel = () => {
-    setShowAddOrEdit(false);
-    setCustomerID("");
-    setCustomerPO("");
-    setDate("");
-    setStatus(1);
-    setPurchaseOrderNumber("");
-    setItems([]);
-    resetForm();
+    setAddClick(false);
   };
 
   const handleInputChange = (e) => {
@@ -154,8 +155,13 @@ const PurchaseOrder = ({ onClose, editData }) => {
 
   return (
     <div>
-      {showAddOrEdit ? (
-        <AddOrEdit onPurchaseData={handleAddItem} onClose={handleCancel} />
+      {addClick ? (
+        <AddOrEdit
+          onClose={handleCancel}
+          selectedPurchaseId={selectedPurchaseId}
+          onPurchaseData={handleAddItem}
+          customesId={customesId}
+        />
       ) : (
         <>
           <form onSubmit={handleSubmit} className="salesorder-form">
@@ -253,8 +259,10 @@ const PurchaseOrder = ({ onClose, editData }) => {
           </form>
 
           <AddPurchaseItem
+            selectedPurchaseId={selectedPurchaseId}
             items={purchaseOrderItems}
             handleDeleteItem={handleDeleteItem}
+            availableQTY={selectedItem ? selectedItem.Stock : 0}
           />
           <div className="customer-form__button-container">
             <button
@@ -267,7 +275,7 @@ const PurchaseOrder = ({ onClose, editData }) => {
 
             <button
               type="button"
-              onClick={onClose}
+              onClick={onCloses}
               className="customer-form__button"
             >
               Cancel

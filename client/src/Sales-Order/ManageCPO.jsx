@@ -12,6 +12,7 @@ import {
   BiDownArrowAlt,
 } from "react-icons/bi";
 import { Tooltip, Popconfirm, Pagination } from "antd";
+import toast from "react-hot-toast";
 
 const Modal = styled.div`
   position: absolute;
@@ -34,6 +35,8 @@ function ManageCPO() {
   const [selectedCustomerPO, setSelectedCustomerPO] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedSaleIndex, setSelectedSaleIndex] = useState(null);
+  const [selectedSaleId, setSelectedSaleId] = useState(null);
+  const [customesId, setCustomesId] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownOpenCustomerPO, setDropdownOpenCustomerPO] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,6 +54,7 @@ function ManageCPO() {
         const updatedData = response.data.map((item) => ({
           ...item,
           CustomerName: item.CustomerName,
+          SalesTotalPrice: item.SalesTotalPrice,
         }));
 
         setSalesData(updatedData);
@@ -86,7 +90,7 @@ function ManageCPO() {
       );
 
       if (response.ok) {
-        alert("Sales order deleted successfully.");
+        toast.success("Sales Order deleted successfully!");
         const updatedSalesData = [...salesData];
         updatedSalesData.splice(index, 1);
         setSalesData(updatedSalesData);
@@ -180,6 +184,8 @@ function ManageCPO() {
 
   const handleEdit = (item) => {
     setSelectedSaleIndex(item);
+    setSelectedSaleId(item.CustomerSalesOrderID);
+    setCustomesId(item.CustomerID);
     setShowModal(true);
   };
 
@@ -350,6 +356,8 @@ function ManageCPO() {
           <Modal>
             <SalesOrder
               onClose={handleClose}
+              selectedSaleId={selectedSaleId}
+              customesId={customesId}
               existingOrder={selectedSaleIndex}
               salesData={salesData}
             />

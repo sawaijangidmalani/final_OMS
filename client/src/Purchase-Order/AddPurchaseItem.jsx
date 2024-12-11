@@ -4,8 +4,9 @@ import axios from "axios";
 import "../Style/Customer.css";
 import { Tooltip, Popconfirm, Pagination } from "antd";
 import AddOrEdit from "./AddOrEdit";
+import toast from "react-hot-toast";
 
-function AddPurchaseItem() {
+function AddPurchaseItem({ selectedPurchaseId }) {
   const [itemsData, setItemsData] = useState([]);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -14,47 +15,51 @@ function AddPurchaseItem() {
 
   useEffect(() => {
     fetchItemsData();
-  }, []);
+  }, [selectedPurchaseId]);
 
   const fetchItemsData = async () => {
     try {
       const res = await axios.get(
         "http://localhost:8000/po/getpurchaseorderitems"
       );
+
       if (res.data && res.data.data) {
-        setItemsData(res.data.data);
-        calculateTotal(res.data.data);
+        const filteredItems = res.data.data.filter(
+          (item) => item.PurchaseOrderID === selectedPurchaseId
+        );
+
+        setItemsData(filteredItems);
+        calculateTotal(filteredItems);
       } else {
         console.error("No data found in the response.");
-        setItemsData([]);
       }
     } catch (err) {
       console.error("Error fetching items data:", err);
-      setItemsData([]);
     }
   };
 
   const calculateTotal = (items) => {
     const newTotal = items.reduce((acc, item) => {
       const unitCost = parseFloat(item.UnitCost) || 0;
-      const tax = parseFloat(item.Tax) || 0;
-      const purchaseQty = parseFloat(item.PurchaseQty) || 0;
+      const allocatedQty = parseFloat(item.AllocatedQty) || 0;
 
-      const itemTotal = purchaseQty * (unitCost + (unitCost * tax) / 100);
+      const itemTotal = allocatedQty * unitCost;
       return acc + itemTotal;
     }, 0);
 
     setTotal(newTotal.toFixed(2));
   };
 
-  const handleDelete = async (itemID) => {
+  const handleDelete = async (PurchaseOrderItemID) => {
     try {
-      await axios.delete(`http://localhost:8000/po/deleteItem/${itemID}`);
+      await axios.delete(
+        `http://localhost:8000/po/deleteItem/${PurchaseOrderItemID}`
+      );
+      toast.success("Purchase item deleted successfully!");
       fetchItemsData();
-      alert("Item deleted successfully!");
     } catch (error) {
       console.error("Error deleting item:", error);
-      alert("Error deleting item! Please try again.");
+      toast.error("Error deleting item! Please try again.");
     }
   };
 
@@ -89,11 +94,10 @@ function AddPurchaseItem() {
           {paginatedData.map((item, index) => (
             <tr key={index}>
               <td>{item.ItemName}</td>
-              <td>{item.PurchaseQty}</td>
+              <td>{item.AllocatedQty}</td>
               <td>{item.UnitCost}</td>
               <td>{item.PurchasePrice}</td>
               <td>{item.InvoiceNumber}</td>
-
               <td>{new Date(item.InvoiceDate).toLocaleDateString()}</td>
               <td>
                 <div className="buttons-group">
@@ -123,7 +127,7 @@ function AddPurchaseItem() {
                     <Popconfirm
                       placement="topLeft"
                       description="Are you sure to delete this item?"
-                      onConfirm={() => handleDelete(item.ItemID)}
+                      onConfirm={() => handleDelete(item.PurchaseOrderItemID)}
                       okText="Delete"
                     >
                       <button className="btns2">
@@ -167,6 +171,7 @@ function AddPurchaseItem() {
 
       {editingItem && (
         <AddOrEdit
+          selectedPurchaseId={selectedPurchaseId}
           onClose={() => setEditingItem(false)}
           onPurchaseOrderItemData={fetchItemsData}
           refreshItemsData={fetchItemsData}

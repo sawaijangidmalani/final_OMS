@@ -1,6 +1,8 @@
 import axios from "axios";
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
+import toast from "react-hot-toast";
+
 
 const Modal = styled.div`
   position: fixed;
@@ -29,7 +31,7 @@ const AddItem = ({ editItem, closeModal }) => {
   const [formVisible, setFormVisible] = useState(true);
   const modalRef = useRef();
 
-  // Load suppliers and item units from backend
+
   const loadData = async () => {
     try {
       const [supplierRes, unitsRes] = await Promise.all([
@@ -44,11 +46,10 @@ const AddItem = ({ editItem, closeModal }) => {
   };
 
   useEffect(() => {
-    loadData(); // Fetch suppliers and item units on component mount
+    loadData();
   }, []);
 
   useEffect(() => {
-    console.log("Editing Item Data: ", editItem); // Debugging
     if (editItem) {
       setFormData({
         ItemID: editItem.ItemID,
@@ -76,31 +77,34 @@ const AddItem = ({ editItem, closeModal }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+  
     if (!formData.SupplierID || !formData.Name) {
-      alert("Please fill out all required fields.");
+      toast.error("Please fill out all required fields.");
       return;
     }
+  
     const apiUrl = editItem
       ? "http://localhost:8000/item/updateItems"
       : "http://localhost:8000/item/add_items";
-
+  
     axios
       .post(apiUrl, formData)
       .then((response) => {
-        alert(
-          editItem ? "Item updated successfully" : "Item added successfully"
+        toast.success(
+          editItem ? "Item updated successfully!" : "Item added successfully!"
         );
         window.location.reload();
-        loadData(); 
-        closeModal();
+        loadData();
+        closeModal(); 
       })
       .catch((error) => {
-        alert("Something went wrong. Try again.");
+        toast.error("Something went wrong. Please try again.");
         console.error("Error:", error);
       });
-
+  
     setFormVisible(false);
   };
+  
 
   const handleCancel = (e) => {
     e.preventDefault();

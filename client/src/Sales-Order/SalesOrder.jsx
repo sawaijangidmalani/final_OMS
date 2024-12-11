@@ -6,19 +6,18 @@ import axios from "axios";
 import "../Style/Add.css";
 import { toast } from "react-hot-toast";
 
-const SalesOrder = ({ onClose, existingOrder }) => {
+const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
   const [customerData, setCustomerData] = useState([]);
+  const [salesOrderItems, setSalesOrderItems] = useState([]);
+  const [addClick, setAddClick] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [formData, setFormData] = useState({
     CustomerID: "",
     ProviderID: "1",
     SalesOrderNumber: "",
     SalesDate: "",
     Status: "",
-    SalesTotalPrice: 0.0,
   });
-
-  const [salesOrderItems, setSalesOrderItems] = useState([]);
-  const [addClick, setAddClick] = useState(false);
 
   useEffect(() => {
     const fetchCustomerData = async () => {
@@ -40,7 +39,7 @@ const SalesOrder = ({ onClose, existingOrder }) => {
           ? existingOrder.SalesDate.slice(0, 10)
           : "",
         Status: existingOrder.Status,
-        SalesTotalPrice: existingOrder.SalesTotalPrice,
+        // SalesTotalPrice: existingOrder.SalesTotalPrice,
       });
       setSalesOrderItems(existingOrder.items || []);
     } else {
@@ -53,8 +52,8 @@ const SalesOrder = ({ onClose, existingOrder }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAddSaleItem = (newItem) => {
-    const updatedItems = [...salesOrderItems, newItem];
+  const handleAddSaleItem = (item) => {
+    const updatedItems = [...salesOrderItems, item];
     setSalesOrderItems(updatedItems);
     calculateTotalPrice(updatedItems);
   };
@@ -64,15 +63,18 @@ const SalesOrder = ({ onClose, existingOrder }) => {
       (acc, item) => acc + item.qty * item.unitCost,
       0
     );
-    setFormData((prev) => ({ ...prev, SalesTotalPrice: total }));
+    // setFormData((prev) => ({ ...prev, SalesTotalPrice: total }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     const data = {
       ...formData,
+
       Items: salesOrderItems,
     };
+
+    console.log(data);
 
     try {
       if (existingOrder && existingOrder.CustomerID) {
@@ -80,15 +82,14 @@ const SalesOrder = ({ onClose, existingOrder }) => {
           `http://localhost:8000/customerpo/updateCustomerPo/${formData.SalesOrderNumber}`,
           data
         );
-        alert("Sales Order updated successfully!");
-        // toast.success("Sales Order updated successfully!");
+
+        toast.success("Sales Order updated successfully!");
       } else {
         await axios.post(
           "http://localhost:8000/customerpo/insertCustomerPo",
           data
         );
-        // toast.success("Sales Order created successfully!");
-        alert("Sales Order Saved successfully!");
+        toast.success("Sales Order created successfully!");
       }
       window.location.reload();
       onClose();
@@ -124,7 +125,7 @@ const SalesOrder = ({ onClose, existingOrder }) => {
       SalesOrderNumber: "",
       SalesDate: "",
       Status: "",
-      SalesTotalPrice: 0.0,
+      // SalesTotalPrice: 0.0,
     });
     setSalesOrderItems([]);
   };
@@ -134,7 +135,9 @@ const SalesOrder = ({ onClose, existingOrder }) => {
       {addClick ? (
         <AddOrEditCustomer
           onClose={handleCancel}
+          selectedSaleId={selectedSaleId}
           onPurchaseData={handleAddSaleItem}
+          customesId={customesId}
         />
       ) : (
         <>
@@ -174,7 +177,7 @@ const SalesOrder = ({ onClose, existingOrder }) => {
             </label>
 
             <label htmlFor="salesDate" className="salesorder-form-label">
-              Date:
+              Sales Date:
               <input
                 type="date"
                 id="salesDate"
@@ -208,8 +211,10 @@ const SalesOrder = ({ onClose, existingOrder }) => {
           </form>
 
           <AddSalesItem
+            selectedSaleId={selectedSaleId}
             items={salesOrderItems}
             handleDeleteItem={handleDeleteItem}
+            availableQTY={selectedItem ? selectedItem.Stock : 0}
           />
 
           <div className="customer-form__button-container">
