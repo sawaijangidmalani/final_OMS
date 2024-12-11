@@ -115,7 +115,7 @@ function Home() {
       console.log("Submitting login form with:", credentials); // Check the console output
 
       try {
-        const { data } = await axios.post("https://final-oms.onrender/auth/login", {
+        const { data } = await axios.post("http://localhost:8000/auth/login", {
           email: credentials.email,
           password: credentials.password,
         });
