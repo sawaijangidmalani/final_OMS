@@ -51,11 +51,16 @@ function ManageCPO() {
           "http://localhost:8000/customerpo/getCustomerPo"
         );
 
+        console.log("Fetched Sales Orders:", response.data);
+
+
         const updatedData = response.data.map((item) => ({
           ...item,
           CustomerName: item.CustomerName,
           SalesTotalPrice: item.SalesTotalPrice,
         }));
+
+
 
         setSalesData(updatedData);
         setFilteredData(updatedData);

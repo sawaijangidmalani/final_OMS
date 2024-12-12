@@ -5,6 +5,7 @@ import styled from "styled-components";
 import ApplayOut from "./AppLayOut";
 import Navbar from "../Navbar";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const StyledDiv = styled.div`
   display: flex;
@@ -119,7 +120,8 @@ function Home() {
           email: credentials.email,
           password: credentials.password,
         });
-        alert("User Login Successfully", data); // Log the response
+        toast.success("User Login Successfully");
+        // alert("User Login Successfully", data);
         if (data?.result) {
           navigate("/dashboard");
         } else {

@@ -42,6 +42,7 @@ router.post("/insertCustomerPo", async (req, res) => {
   }
 });
 
+
 router.get("/getCustomerPo", async (req, res) => {
   const sql = `
     SELECT 
@@ -52,11 +53,11 @@ router.get("/getCustomerPo", async (req, res) => {
     JOIN customers cust ON cso.CustomerID = cust.CustomerID
     LEFT JOIN customersalesorderitems csoi ON cso.CustomerSalesOrderID = csoi.CustomerSalesOrderID
     GROUP BY cso.CustomerSalesOrderID
-    
   `;
 
   try {
     const [results] = await con.query(sql);
+    console.log("Backend Response:", results); // Backend console
     res.status(200).json(results);
   } catch (err) {
     console.error("Error fetching sales orders:", err);
@@ -64,10 +65,63 @@ router.get("/getCustomerPo", async (req, res) => {
   }
 });
 
-router.put("/updateCustomerPo/:SalesOrderNumber", async (req, res) => {
-  const { SalesOrderNumber } = req.params;
-  const { CustomerID, ProviderID, SalesDate, Status, SalesTotalPrice, Items } =
-    req.body;
+
+// router.put("/updateCustomerPo/:SalesOrderNumber", async (req, res) => {
+//   const { SalesOrderNumber } = req.params;
+//   const { CustomerID, ProviderID, SalesDate, Status, SalesTotalPrice, Items } =
+//     req.body;
+
+//   const connection = await con.getConnection();
+//   try {
+//     await connection.beginTransaction();
+
+//     const updateSalesOrderQuery = `
+//       UPDATE customersalesorder
+//       SET CustomerID = ?, ProviderID = ?, SalesDate = ?, Status = ?, SalesTotalPrice = ?
+//       WHERE SalesOrderNumber = ?
+//     `;
+//     const [salesOrderResult] = await connection.execute(updateSalesOrderQuery, [
+//       CustomerID,
+//       ProviderID,
+//       SalesDate,
+//       Status,
+//       SalesTotalPrice,
+//       SalesOrderNumber,
+//     ]);
+
+//     if (salesOrderResult.affectedRows === 0) {
+//       return res.status(404).json({ message: "Sales Order not found" });
+//     }
+//     const insertItemQuery = `
+//       INSERT INTO customersalesorderitems (SalesOrderNumber, ItemID, Qty, UnitCost)
+//       VALUES (?, ?, ?, ?)
+//     `;
+//     for (const item of Items) {
+//       await connection.execute(insertItemQuery, [
+//         SalesOrderNumber,
+//         item.ItemID,
+//         item.qty,
+//         item.unitCost,
+//       ]);
+//     }
+
+//     await connection.commit();
+//     res.status(200).json({ message: "Sales Order updated successfully!" });
+//   } catch (error) {
+//     await connection.rollback();
+//     console.error("Error updating sales order:", error);
+//     res
+//       .status(500)
+//       .json({ message: "Failed to update sales order", error: error.message });
+//   } finally {
+//     connection.release();
+//   }
+// });
+
+
+router.put("/updateCustomerPo/:CustomerSalesOrderID", async (req, res) => {
+  const { CustomerSalesOrderID } = req.params;
+  const { CustomerID, ProviderID, SalesDate, Status, SalesTotalPrice, Items } = req.body;
 
   const connection = await con.getConnection();
   try {
@@ -76,7 +130,7 @@ router.put("/updateCustomerPo/:SalesOrderNumber", async (req, res) => {
     const updateSalesOrderQuery = `
       UPDATE customersalesorder
       SET CustomerID = ?, ProviderID = ?, SalesDate = ?, Status = ?, SalesTotalPrice = ?
-      WHERE SalesOrderNumber = ?
+      WHERE CustomerSalesOrderID = ?
     `;
     const [salesOrderResult] = await connection.execute(updateSalesOrderQuery, [
       CustomerID,
@@ -84,19 +138,25 @@ router.put("/updateCustomerPo/:SalesOrderNumber", async (req, res) => {
       SalesDate,
       Status,
       SalesTotalPrice,
-      SalesOrderNumber,
+      CustomerSalesOrderID,
     ]);
 
     if (salesOrderResult.affectedRows === 0) {
       return res.status(404).json({ message: "Sales Order not found" });
     }
+
+    const deleteExistingItemsQuery = `
+      DELETE FROM customersalesorderitems WHERE CustomerSalesOrderID = ?
+    `;
+    await connection.execute(deleteExistingItemsQuery, [CustomerSalesOrderID]);
+
     const insertItemQuery = `
-      INSERT INTO customersalesorderitems (SalesOrderNumber, ItemID, Qty, UnitCost)
+      INSERT INTO customersalesorderitems (CustomerSalesOrderID, ItemID, Qty, UnitCost)
       VALUES (?, ?, ?, ?)
     `;
     for (const item of Items) {
       await connection.execute(insertItemQuery, [
-        SalesOrderNumber,
+        CustomerSalesOrderID,
         item.ItemID,
         item.qty,
         item.unitCost,
@@ -108,13 +168,12 @@ router.put("/updateCustomerPo/:SalesOrderNumber", async (req, res) => {
   } catch (error) {
     await connection.rollback();
     console.error("Error updating sales order:", error);
-    res
-      .status(500)
-      .json({ message: "Failed to update sales order", error: error.message });
+    res.status(500).json({ message: "Failed to update sales order", error: error.message });
   } finally {
     connection.release();
   }
 });
+
 
 router.delete("/deleteCustomerPo", async (req, res) => {
   const { CustomerSalesOrderID } = req.body;

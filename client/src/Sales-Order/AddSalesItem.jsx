@@ -51,19 +51,6 @@ function AddSalesItem({ selectedSaleId }) {
     setTotal(newTotal.toFixed(2));
   };
 
-  // const handleDelete = async (itemID) => {
-  //   try {
-  //     await axios.delete(
-  //       `http://localhost:8000/customerpo/deleteItem/${CustomerSalesOrderItemID}`
-  //     );
-  //     fetchItemsData();
-  //     toast.success("Sales item deleted successfully!");
-  //     window.location.reload();
-  //   } catch (error) {
-  //     console.error("Error deleting item:", error);
-  //     alert("Error deleting item! Please try again.");
-  //   }
-  // };
 
   const handleDelete = async (CustomerSalesOrderItemID) => {
     try {
@@ -71,7 +58,7 @@ function AddSalesItem({ selectedSaleId }) {
         `http://localhost:8000/customerpo/deleteItem/${CustomerSalesOrderItemID}`
       );
       toast.success("Sales item deleted successfully!");
-      fetchItemsData(); // Data ko refresh karne ke liye
+      fetchItemsData();
     } catch (error) {
       console.error("Error deleting item:", error);
       toast.error("Error deleting item! Please try again.");

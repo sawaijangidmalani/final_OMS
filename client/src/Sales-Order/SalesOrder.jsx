@@ -66,23 +66,58 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
     // setFormData((prev) => ({ ...prev, SalesTotalPrice: total }));
   };
 
+  // const handleSubmit = async (event) => {
+  //   event.preventDefault();
+  //   const data = {
+  //     ...formData,
+
+  //     Items: salesOrderItems,
+  //   };
+
+  //   console.log(data);
+
+  //   try {
+  //     if (existingOrder && existingOrder.CustomerID) {
+  //       await axios.put(
+  //         `http://localhost:8000/customerpo/updateCustomerPo/${formData.SalesOrderNumber}`,
+  //         data
+  //       );
+
+  //       toast.success("Sales Order updated successfully!");
+  //     } else {
+  //       await axios.post(
+  //         "http://localhost:8000/customerpo/insertCustomerPo",
+  //         data
+  //       );
+  //       toast.success("Sales Order created successfully!");
+  //     }
+  //     window.location.reload();
+  //     onClose();
+  //     resetForm();
+  //   } catch (err) {
+  //     console.error(
+  //       "Error handling sales order:",
+  //       err.response ? err.response.data : err.message
+  //     );
+  //   }
+  // };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     const data = {
       ...formData,
-
       Items: salesOrderItems,
     };
-
+  
     console.log(data);
-
+  
     try {
-      if (existingOrder && existingOrder.CustomerID) {
+      if (existingOrder && existingOrder.CustomerSalesOrderID) {
         await axios.put(
-          `http://localhost:8000/customerpo/updateCustomerPo/${formData.SalesOrderNumber}`,
+          `http://localhost:8000/customerpo/updateCustomerPo/${formData.CustomerSalesOrderID}`,
           data
         );
-
+  
         toast.success("Sales Order updated successfully!");
       } else {
         await axios.post(
@@ -101,6 +136,7 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
       );
     }
   };
+  
 
   const handleDeleteItem = (index) => {
     const updatedItems = salesOrderItems.filter((_, i) => i !== index);
